@@ -3,13 +3,33 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for the B2B medical supplies marketplace
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: Auth
+    description: Browser authentication endpoints.
+  - name: profile
+    description: Current user profile and onboarding
+  - name: companies
+    description: Vendor/buyer company records
+  - name: admin
+    description: Admin approval and dashboard operations
+  - name: categories
+    description: Product categories
+  - name: products
+    description: Master product catalog
+  - name: offers
+    description: Vendor product offers
+  - name: cart
+    description: Buyer shopping cart
+  - name: orders
+    description: Orders and checkout
+  - name: rfqs
+    description: Requests for quotation
 paths:
   /healthz:
     get:
@@ -24,7 +44,702 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      tags: [Auth]
+      operationId: getCurrentAuthUser
+      summary: Get the currently authenticated user
+      parameters:
+        - $ref: "#/components/parameters/AuthorizationSessionHeader"
+        - $ref: "#/components/parameters/SessionCookie"
+      responses:
+        "200":
+          description: Auth status resolved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+  /login:
+    get:
+      tags: [Auth]
+      operationId: beginBrowserLogin
+      summary: Start the browser OIDC login flow
+      parameters:
+        - name: returnTo
+          in: query
+          required: false
+          description: Relative path to redirect to after login (must start with `/`). Defaults to `/`.
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to the OIDC authorization endpoint.
+  /callback:
+    get:
+      tags: [Auth]
+      operationId: handleBrowserLoginCallback
+      summary: Complete the browser OIDC login flow
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: iss
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uri
+      responses:
+        "302":
+          description: Redirect to the `returnTo` path on success (defaults to `/`) or `/api/login` on failure.
+  /logout:
+    get:
+      tags: [Auth]
+      operationId: logoutBrowserSession
+      summary: Clear the session and begin OIDC logout
+      parameters:
+        - $ref: "#/components/parameters/AuthorizationSessionHeader"
+        - $ref: "#/components/parameters/SessionCookie"
+      responses:
+        "302":
+          description: Redirect to the OIDC provider logout URL.
+
+  /me:
+    get:
+      operationId: getMyProfile
+      tags: [profile]
+      summary: Get the current user's profile, role, and company
+      responses:
+        "200":
+          description: Current profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyProfile"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /me/onboard:
+    post:
+      operationId: onboardMyProfile
+      tags: [profile]
+      summary: Choose a role (buyer/vendor) and register a company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardInput"
+      responses:
+        "200":
+          description: Onboarding complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MyProfile"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /companies/mine:
+    get:
+      operationId: getMyCompany
+      tags: [companies]
+      summary: Get the current user's company
+      responses:
+        "200":
+          description: Company record
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Company"
+                  - type: "null"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /admin/companies:
+    get:
+      operationId: listAdminCompanies
+      tags: [admin]
+      summary: List all companies for admin review
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, approved, rejected, suspended]
+      responses:
+        "200":
+          description: Companies list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Company"
+  /admin/companies/{id}/status:
+    patch:
+      operationId: updateCompanyStatus
+      tags: [admin]
+      summary: Approve, reject, or suspend a company
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanyStatusUpdate"
+      responses:
+        "200":
+          description: Updated company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [admin]
+      summary: Admin dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboardStats"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      responses:
+        "200":
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List master products with offer aggregates
+      parameters:
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductWithStats"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a master product (vendor/admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /products/{id}/offers:
+    get:
+      operationId: listProductOffers
+      tags: [offers]
+      summary: List vendor offers for a product, for comparison
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vendor offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OfferWithVendor"
+
+  /offers:
+    post:
+      operationId: createOffer
+      tags: [offers]
+      summary: Create a vendor offer on a master product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorOfferInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorOffer"
+  /offers/mine:
+    get:
+      operationId: listMyOffers
+      tags: [offers]
+      summary: List the current vendor's offers
+      responses:
+        "200":
+          description: Offers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OfferWithProduct"
+  /offers/{id}:
+    patch:
+      operationId: updateOffer
+      tags: [offers]
+      summary: Update a vendor offer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VendorOfferUpdate"
+      responses:
+        "200":
+          description: Updated offer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorOffer"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    delete:
+      operationId: deleteOffer
+      tags: [offers]
+      summary: Delete a vendor offer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /vendor/dashboard:
+    get:
+      operationId: getVendorDashboard
+      tags: [offers]
+      summary: Vendor dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorDashboardStats"
+
+  /cart:
+    get:
+      operationId: listCartItems
+      tags: [cart]
+      summary: List current user's cart items with offer/product details
+      responses:
+        "200":
+          description: Cart items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CartItemWithDetails"
+    post:
+      operationId: addCartItem
+      tags: [cart]
+      summary: Add an offer to the cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartItemInput"
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CartItemWithDetails"
+  /cart/{id}:
+    patch:
+      operationId: updateCartItem
+      tags: [cart]
+      summary: Update cart item quantity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CartItemUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CartItemWithDetails"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+    delete:
+      operationId: removeCartItem
+      tags: [cart]
+      summary: Remove a cart item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /orders/checkout:
+    post:
+      operationId: checkoutCart
+      tags: [orders]
+      summary: Convert the current cart into an order
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderWithItems"
+        "400":
+          description: Cart is empty or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /orders:
+    get:
+      operationId: listMyOrders
+      tags: [orders]
+      summary: List orders placed by the current buyer
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderWithItems"
+  /orders/vendor:
+    get:
+      operationId: listVendorOrderItems
+      tags: [orders]
+      summary: List order items sold by the current vendor
+      responses:
+        "200":
+          description: Vendor order items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VendorOrderItem"
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order with its items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderWithItems"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /orders/{id}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status (vendor/admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderStatusUpdate"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderWithItems"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+
+  /rfqs:
+    get:
+      operationId: listRfqs
+      tags: [rfqs]
+      summary: List RFQs (buyers see their own, vendors/admins see open ones)
+      responses:
+        "200":
+          description: RFQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RfqWithCounts"
+    post:
+      operationId: createRfq
+      tags: [rfqs]
+      summary: Submit a request for quotation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RfqInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RfqWithCounts"
+  /rfqs/{id}:
+    get:
+      operationId: getRfq
+      tags: [rfqs]
+      summary: Get an RFQ with vendor responses
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: RFQ with responses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RfqWithResponses"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /rfqs/{id}/responses:
+    post:
+      operationId: createRfqResponse
+      tags: [rfqs]
+      summary: Submit a vendor quotation response to an RFQ
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RfqResponseInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RfqResponse"
+
 components:
+  parameters:
+    AuthorizationSessionHeader:
+      name: Authorization
+      in: header
+      required: false
+      description: Opaque session token — `Bearer <sid>`.
+      schema:
+        type: string
+    SessionCookie:
+      name: sid
+      in: cookie
+      required: false
+      description: Browser session cookie.
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +749,561 @@ components:
       required:
         - status
 
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    DeleteResult:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
+    AuthUser:
+      type: object
+      required: [id, email, firstName, lastName, profileImageUrl]
+      properties:
+        id:
+          type: string
+        email:
+          type: [string, "null"]
+          format: email
+        firstName:
+          type: [string, "null"]
+        lastName:
+          type: [string, "null"]
+        profileImageUrl:
+          type: [string, "null"]
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/AuthUser"
+            - type: "null"
+
+    MyProfile:
+      type: object
+      required: [userId, role, companyId, company, user]
+      properties:
+        userId:
+          type: string
+        role:
+          type: string
+          enum: [buyer, vendor, admin]
+        companyId:
+          type: [integer, "null"]
+        company:
+          oneOf:
+            - $ref: "#/components/schemas/Company"
+            - type: "null"
+        user:
+          $ref: "#/components/schemas/AuthUser"
+
+    OnboardInput:
+      type: object
+      required: [role, company]
+      properties:
+        role:
+          type: string
+          enum: [buyer, vendor]
+        company:
+          $ref: "#/components/schemas/CompanyInput"
+
+    Company:
+      type: object
+      required: [id, name, type, subtype, status, registrationNumber, taxInfo, address, contactPhone, contactEmail, ownerUserId, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          enum: [vendor, buyer]
+        subtype:
+          type: string
+        registrationNumber:
+          type: [string, "null"]
+        taxInfo:
+          type: [string, "null"]
+        address:
+          type: [string, "null"]
+        contactPhone:
+          type: [string, "null"]
+        contactEmail:
+          type: [string, "null"]
+        status:
+          type: string
+          enum: [pending, approved, rejected, suspended]
+        ownerUserId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    CompanyInput:
+      type: object
+      required: [name, type, subtype]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [vendor, buyer]
+        subtype:
+          type: string
+          minLength: 1
+        registrationNumber:
+          type: string
+        taxInfo:
+          type: string
+        address:
+          type: string
+        contactPhone:
+          type: string
+        contactEmail:
+          type: string
+    CompanyStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected, suspended]
+
+    AdminDashboardStats:
+      type: object
+      required: [totalRevenue, totalOrders, activeVendors, activeBuyers, pendingApprovals, totalProducts, openRfqs]
+      properties:
+        totalRevenue:
+          type: number
+        totalOrders:
+          type: integer
+        activeVendors:
+          type: integer
+        activeBuyers:
+          type: integer
+        pendingApprovals:
+          type: integer
+        totalProducts:
+          type: integer
+        openRfqs:
+          type: integer
+
+    VendorDashboardStats:
+      type: object
+      required: [totalOffers, totalOrders, revenue, openRfqs]
+      properties:
+        totalOffers:
+          type: integer
+        totalOrders:
+          type: integer
+        revenue:
+          type: number
+        openRfqs:
+          type: integer
+
+    Category:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+    CategoryInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        slug:
+          type: string
+          minLength: 1
+
+    Product:
+      type: object
+      required: [id, categoryId, name, description, unit, imageUrl, createdAt]
+      properties:
+        id:
+          type: integer
+        categoryId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: [string, "null"]
+        unit:
+          type: string
+        imageUrl:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+    ProductInput:
+      type: object
+      required: [categoryId, name, unit]
+      properties:
+        categoryId:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        unit:
+          type: string
+          minLength: 1
+        imageUrl:
+          type: string
+    ProductWithStats:
+      allOf:
+        - $ref: "#/components/schemas/Product"
+        - type: object
+          required: [categoryName, offerCount, minPrice]
+          properties:
+            categoryName:
+              type: string
+            offerCount:
+              type: integer
+            minPrice:
+              type: [number, "null"]
+
+    PriceTier:
+      type: object
+      required: [minQty, maxQty, price]
+      properties:
+        minQty:
+          type: integer
+        maxQty:
+          type: [integer, "null"]
+        price:
+          type: number
+
+    VendorOffer:
+      type: object
+      required: [id, productId, vendorCompanyId, price, moq, stock, deliveryDays, priceTiers, status, createdAt]
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        vendorCompanyId:
+          type: integer
+        price:
+          type: number
+        moq:
+          type: integer
+        stock:
+          type: integer
+        deliveryDays:
+          type: integer
+        priceTiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriceTier"
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: string
+          format: date-time
+    VendorOfferInput:
+      type: object
+      required: [productId, price, moq, stock, deliveryDays, priceTiers]
+      properties:
+        productId:
+          type: integer
+        price:
+          type: number
+          minimum: 0
+        moq:
+          type: integer
+          minimum: 1
+        stock:
+          type: integer
+          minimum: 0
+        deliveryDays:
+          type: integer
+          minimum: 0
+        priceTiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriceTier"
+    VendorOfferUpdate:
+      type: object
+      properties:
+        price:
+          type: number
+        moq:
+          type: integer
+        stock:
+          type: integer
+        deliveryDays:
+          type: integer
+        priceTiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriceTier"
+        status:
+          type: string
+          enum: [active, inactive]
+    OfferWithVendor:
+      allOf:
+        - $ref: "#/components/schemas/VendorOffer"
+        - type: object
+          required: [vendorName, vendorSubtype]
+          properties:
+            vendorName:
+              type: string
+            vendorSubtype:
+              type: string
+    OfferWithProduct:
+      allOf:
+        - $ref: "#/components/schemas/VendorOffer"
+        - type: object
+          required: [productName, productUnit]
+          properties:
+            productName:
+              type: string
+            productUnit:
+              type: string
+
+    CartItem:
+      type: object
+      required: [id, userId, offerId, quantity, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        offerId:
+          type: integer
+        quantity:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    CartItemInput:
+      type: object
+      required: [offerId, quantity]
+      properties:
+        offerId:
+          type: integer
+        quantity:
+          type: integer
+          minimum: 1
+    CartItemUpdate:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+    CartItemWithDetails:
+      allOf:
+        - $ref: "#/components/schemas/CartItem"
+        - type: object
+          required: [productId, productName, productUnit, vendorCompanyId, vendorName, unitPrice, moq, stock]
+          properties:
+            productId:
+              type: integer
+            productName:
+              type: string
+            productUnit:
+              type: string
+            vendorCompanyId:
+              type: integer
+            vendorName:
+              type: string
+            unitPrice:
+              type: number
+            moq:
+              type: integer
+            stock:
+              type: integer
+
+    Order:
+      type: object
+      required: [id, buyerUserId, buyerCompanyId, status, totalAmount, createdAt]
+      properties:
+        id:
+          type: integer
+        buyerUserId:
+          type: string
+        buyerCompanyId:
+          type: [integer, "null"]
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, completed, cancelled]
+        totalAmount:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    OrderItemDetail:
+      type: object
+      required: [id, orderId, offerId, productId, productName, vendorCompanyId, vendorName, quantity, unitPrice, subtotal]
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        offerId:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        vendorCompanyId:
+          type: integer
+        vendorName:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        subtotal:
+          type: number
+    OrderWithItems:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderItemDetail"
+    VendorOrderItem:
+      allOf:
+        - $ref: "#/components/schemas/OrderItemDetail"
+        - type: object
+          required: [orderStatus, orderCreatedAt]
+          properties:
+            orderStatus:
+              type: string
+            orderCreatedAt:
+              type: string
+              format: date-time
+    OrderStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, shipped, completed, cancelled]
+
+    Rfq:
+      type: object
+      required: [id, buyerUserId, buyerCompanyId, productId, title, description, quantity, status, createdAt]
+      properties:
+        id:
+          type: integer
+        buyerUserId:
+          type: string
+        buyerCompanyId:
+          type: [integer, "null"]
+        productId:
+          type: [integer, "null"]
+        title:
+          type: string
+        description:
+          type: [string, "null"]
+        quantity:
+          type: integer
+        status:
+          type: string
+          enum: [open, closed]
+        createdAt:
+          type: string
+          format: date-time
+    RfqInput:
+      type: object
+      required: [title, quantity]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        productId:
+          type: integer
+        quantity:
+          type: integer
+          minimum: 1
+    RfqWithCounts:
+      allOf:
+        - $ref: "#/components/schemas/Rfq"
+        - type: object
+          required: [buyerCompanyName, productName, responseCount]
+          properties:
+            buyerCompanyName:
+              type: [string, "null"]
+            productName:
+              type: [string, "null"]
+            responseCount:
+              type: integer
+    RfqResponse:
+      type: object
+      required: [id, rfqId, vendorCompanyId, price, quantity, leadTimeDays, terms, createdAt]
+      properties:
+        id:
+          type: integer
+        rfqId:
+          type: integer
+        vendorCompanyId:
+          type: integer
+        price:
+          type: number
+        quantity:
+          type: integer
+        leadTimeDays:
+          type: integer
+        terms:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+    RfqResponseInput:
+      type: object
+      required: [price, quantity, leadTimeDays]
+      properties:
+        price:
+          type: number
+          minimum: 0
+        quantity:
+          type: integer
+          minimum: 1
+        leadTimeDays:
+          type: integer
+          minimum: 0
+        terms:
+          type: string
+    RfqResponseWithVendor:
+      allOf:
+        - $ref: "#/components/schemas/RfqResponse"
+        - type: object
+          required: [vendorName]
+          properties:
+            vendorName:
+              type: string
+    RfqWithResponses:
+      allOf:
+        - $ref: "#/components/schemas/RfqWithCounts"
+        - type: object
+          required: [responses]
+          properties:
+            responses:
+              type: array
+              items:
+                $ref: "#/components/schemas/RfqResponseWithVendor"

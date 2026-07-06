@@ -1,0 +1,3 @@
+- [api-client-react imports](api-client-react-imports.md) — always import hooks/types/query-keys from the package root, never a `/src/generated/...` subpath.
+- [New composite libs need composite:true](composite-lib-setup.md) — a lib referenced in root tsconfig.json references must set composite/declarationMap/emitDeclarationOnly or tsc --build fails with TS6306.
+- [React Query needs explicit provider](react-query-provider-setup.md) — Vite/React app scaffolds don't always wrap the app in QueryClientProvider; missing it causes a silent-until-runtime "No QueryClient set" crash on any page using query hooks.
