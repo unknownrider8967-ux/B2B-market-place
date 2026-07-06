@@ -1,14 +1,16 @@
-import { useListMyOrders } from "@workspace/api-client-react";
-import { getListMyOrdersQueryKey } from "@workspace/api-client-react";
+import { useListMyOrders, useAddCartItem } from "@workspace/api-client-react";
+import { getListMyOrdersQueryKey, getListCartItemsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, PackageSearch, ClipboardList } from "lucide-react";
-import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Loader2, PackageSearch, ClipboardList, RotateCcw } from "lucide-react";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 const statusStyles: Record<string, string> = {
-  pending: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+  pending:   "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
   confirmed: "bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30",
-  shipped: "bg-violet-500/15 text-violet-600 dark:text-violet-400 border-violet-500/30",
+  shipped:   "bg-violet-500/15 text-violet-600 dark:text-violet-400 border-violet-500/30",
   completed: "bg-primary/15 text-primary border-primary/30",
   cancelled: "bg-destructive/15 text-destructive border-destructive/30",
 };
@@ -18,6 +20,32 @@ export default function BuyerOrders() {
     query: { queryKey: getListMyOrdersQueryKey() },
   });
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const addCart = useAddCartItem();
+
+  const handleBuyAgain = async (items: { offerId: number; quantity: number }[]) => {
+    let added = 0;
+    for (const item of items) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          addCart.mutate(
+            { data: { offerId: item.offerId, quantity: item.quantity } },
+            { onSuccess: () => { added++; resolve(); }, onError: () => resolve() },
+          );
+        });
+      } catch {
+        // skip unavailable offers
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: getListCartItemsQueryKey() });
+    if (added > 0) {
+      toast({ title: "Added to cart", description: `${added} item(s) added. Head to cart to checkout.` });
+      setLocation("/cart");
+    } else {
+      toast({ title: "Items unavailable", description: "None of the offers from this order are currently available.", variant: "destructive" });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -64,6 +92,16 @@ export default function BuyerOrders() {
                   {order.status}
                 </Badge>
                 <div className="font-bold text-primary text-lg">${order.totalAmount.toFixed(2)}</div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleBuyAgain(order.items.map((i) => ({ offerId: i.offerId, quantity: i.quantity })))}
+                  disabled={addCart.isPending}
+                  title="Re-add all items to cart"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                  Buy Again
+                </Button>
               </div>
             </div>
             <div className="divide-y divide-border">

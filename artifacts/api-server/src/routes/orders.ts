@@ -20,6 +20,7 @@ import {
   UpdateOrderStatusResponse,
 } from "@workspace/api-zod";
 import { getOrCreateProfile } from "../lib/profile";
+import { createNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -220,6 +221,24 @@ router.patch("/orders/:id/status", async (req: Request, res: Response): Promise<
   if (!updated) {
     res.status(404).json({ error: "Order not found" });
     return;
+  }
+
+  // Notify the buyer about the order status change
+  const statusLabels: Record<string, string> = {
+    confirmed: "confirmed ✅",
+    shipped: "shipped 🚚",
+    completed: "completed 🎉",
+    cancelled: "cancelled ❌",
+  };
+  const label = statusLabels[body.data.status];
+  if (label) {
+    await createNotification({
+      userId: updated.buyerUserId,
+      type: "order_status",
+      title: `Order #${updated.id} ${label}`,
+      message: `Your order #${updated.id} (total ${Number(updated.totalAmount).toFixed(2)}) has been ${body.data.status}.`,
+      relatedId: updated.id,
+    });
   }
 
   const result = await buildOrderWithItems(updated.id);

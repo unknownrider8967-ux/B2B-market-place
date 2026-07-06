@@ -16,6 +16,7 @@ import {
   GetAdminDashboardResponse,
 } from "@workspace/api-zod";
 import { getOrCreateProfile } from "../lib/profile";
+import { createNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -67,6 +68,32 @@ router.patch("/admin/companies/:id/status", async (req: Request, res: Response):
   if (!updated) {
     res.status(404).json({ error: "Company not found" });
     return;
+  }
+
+  // Notify company owner about status change
+  const statusMessages: Record<string, { title: string; message: string }> = {
+    approved: {
+      title: "Company Approved ✅",
+      message: `Your company "${updated.name}" has been approved. You can now start using the marketplace.`,
+    },
+    rejected: {
+      title: "Company Application Rejected",
+      message: `Your company "${updated.name}" application was rejected. Please contact support for more information.`,
+    },
+    suspended: {
+      title: "Company Suspended",
+      message: `Your company "${updated.name}" has been suspended. Please contact support.`,
+    },
+  };
+  const notif = statusMessages[body.data.status];
+  if (notif) {
+    await createNotification({
+      userId: updated.ownerUserId,
+      type: `company_${body.data.status}`,
+      title: notif.title,
+      message: notif.message,
+      relatedId: updated.id,
+    });
   }
 
   res.json(UpdateCompanyStatusResponse.parse(updated));

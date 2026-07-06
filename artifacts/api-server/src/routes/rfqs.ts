@@ -12,6 +12,7 @@ import {
   CreateRfqResponseResponse,
 } from "@workspace/api-zod";
 import { getOrCreateProfile } from "../lib/profile";
+import { createNotification } from "../lib/notifications";
 
 const router: IRouter = Router();
 
@@ -146,6 +147,19 @@ router.post("/rfqs/:id/responses", async (req: Request, res: Response): Promise<
       vendorCompanyId: profile.companyId,
     })
     .returning();
+
+  // Notify the buyer that their RFQ received a vendor response
+  const [rfqRow] = await db.select().from(rfqsTable).where(eq(rfqsTable.id, params.data.id)).limit(1);
+  if (rfqRow) {
+    const [vendorCompany] = await db.select().from(companiesTable).where(eq(companiesTable.id, profile.companyId!)).limit(1);
+    await createNotification({
+      userId: rfqRow.buyerUserId,
+      type: "rfq_response",
+      title: "New Quotation Received 💬",
+      message: `${vendorCompany?.name ?? "A vendor"} submitted a quote for your RFQ "${rfqRow.title}": ${body.data.price.toFixed(2)} for ${body.data.quantity} units.`,
+      relatedId: params.data.id,
+    });
+  }
 
   res.status(201).json(CreateRfqResponseResponse.parse(created));
 });

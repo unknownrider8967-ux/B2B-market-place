@@ -7,12 +7,14 @@ import ProductDetail from "@/pages/buyer/product-detail";
 import Cart from "@/pages/buyer/cart";
 import BuyerOrders from "@/pages/buyer/orders";
 import BuyerRfqs from "@/pages/buyer/rfqs";
+import BuyerWishlist from "@/pages/buyer/wishlist";
 import VendorDashboard from "@/pages/vendor/dashboard";
 import VendorOffers from "@/pages/vendor/offers";
 import VendorOrders from "@/pages/vendor/orders";
 import VendorRfqs from "@/pages/vendor/rfqs";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminCompanies from "@/pages/admin/companies";
+import AdminProducts from "@/pages/admin/products";
 
 export default function App() {
   return (
@@ -36,6 +38,9 @@ export default function App() {
       <Route path="/rfq">
         <AppLayout allowedRoles={["buyer"]}><BuyerRfqs /></AppLayout>
       </Route>
+      <Route path="/wishlist">
+        <AppLayout allowedRoles={["buyer"]}><BuyerWishlist /></AppLayout>
+      </Route>
 
       {/* Vendor Routes */}
       <Route path="/vendor">
@@ -57,6 +62,9 @@ export default function App() {
       </Route>
       <Route path="/admin/companies">
         <AppLayout allowedRoles={["admin"]}><AdminCompanies /></AppLayout>
+      </Route>
+      <Route path="/admin/products">
+        <AppLayout allowedRoles={["admin"]}><AdminProducts /></AppLayout>
       </Route>
 
       <Route>

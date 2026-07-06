@@ -330,6 +330,48 @@ export const GetProductResponse = zod.object({
 
 
 /**
+ * @summary Update a master product (admin)
+ */
+export const UpdateProductParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+
+
+
+export const UpdateProductBody = zod.object({
+  "categoryId": zod.number().optional(),
+  "name": zod.string().min(1).optional(),
+  "description": zod.string().optional(),
+  "unit": zod.string().min(1).optional(),
+  "imageUrl": zod.string().optional()
+})
+
+export const UpdateProductResponse = zod.object({
+  "id": zod.number(),
+  "categoryId": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "unit": zod.string(),
+  "imageUrl": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a master product (admin)
+ */
+export const DeleteProductParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteProductResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary List vendor offers for a product, for comparison
  */
 export const ListProductOffersParams = zod.object({
@@ -838,6 +880,107 @@ export const CreateRfqResponseResponse = zod.object({
   "quantity": zod.number(),
   "leadTimeDays": zod.number(),
   "terms": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a category (admin)
+ */
+export const DeleteCategoryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteCategoryResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary List the buyer's wishlist items
+ */
+export const ListWishlistResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "productId": zod.number(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "productName": zod.string(),
+  "productUnit": zod.string(),
+  "categoryName": zod.string(),
+  "minPrice": zod.number().nullish(),
+  "offerCount": zod.number(),
+  "imageUrl": zod.string().nullish()
+}))
+export const ListWishlistResponse = zod.array(ListWishlistResponseItem)
+
+
+/**
+ * @summary Add a product to the wishlist
+ */
+export const AddToWishlistBody = zod.object({
+  "productId": zod.number()
+})
+
+export const AddToWishlistResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "productId": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Remove a product from the wishlist
+ */
+export const RemoveFromWishlistParams = zod.object({
+  "productId": zod.coerce.number()
+})
+
+export const RemoveFromWishlistResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary List current user's notifications
+ */
+export const ListNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "isRead": zod.boolean(),
+  "relatedId": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
+
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Mark a single notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "isRead": zod.boolean(),
+  "relatedId": zod.number().nullish(),
   "createdAt": zod.coerce.date()
 })
 

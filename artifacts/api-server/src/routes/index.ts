@@ -10,6 +10,8 @@ import offersRouter from "./offers";
 import cartRouter from "./cart";
 import ordersRouter from "./orders";
 import rfqsRouter from "./rfqs";
+import wishlistRouter from "./wishlist";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use(offersRouter);
 router.use(cartRouter);
 router.use(ordersRouter);
 router.use(rfqsRouter);
+router.use(wishlistRouter);
+router.use(notificationsRouter);
 
 export default router;

@@ -1,8 +1,9 @@
 import { useAuth } from "@workspace/replit-auth-web";
 import { useAuthGuard } from "@/hooks/use-auth-guard";
 import { Link, useLocation } from "wouter";
-import { Loader2, LogOut, Package, ShoppingCart, FileText, ClipboardList, LayoutDashboard, Building2, Users } from "lucide-react";
+import { Loader2, LogOut, Package, ShoppingCart, FileText, ClipboardList, LayoutDashboard, Building2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/ui/notification-bell";
 
 export function AppLayout({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) {
   const { profile, isLoading } = useAuthGuard(allowedRoles);
@@ -26,6 +27,7 @@ export function AppLayout({ children, allowedRoles }: { children: React.ReactNod
     { href: "/cart", label: "Cart", icon: ShoppingCart },
     { href: "/orders", label: "Orders", icon: ClipboardList },
     { href: "/rfq", label: "RFQs", icon: FileText },
+    { href: "/wishlist", label: "Wishlist", icon: Heart },
   ] : role === "vendor" ? [
     { href: "/vendor", label: "Dashboard", icon: LayoutDashboard },
     { href: "/vendor/offers", label: "My Offers", icon: Package },
@@ -34,13 +36,15 @@ export function AppLayout({ children, allowedRoles }: { children: React.ReactNod
   ] : [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/companies", label: "Companies", icon: Building2 },
+    { href: "/admin/products", label: "Products", icon: Package },
   ];
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
       <aside className="w-full md:w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border bg-sidebar">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-sidebar-border bg-sidebar">
           <h1 className="text-xl font-bold text-sidebar-primary">MedSupply</h1>
+          <NotificationBell />
         </div>
         
         <div className="p-4 flex-1">

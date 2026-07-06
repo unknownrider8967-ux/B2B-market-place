@@ -422,6 +422,50 @@ export type RfqWithResponses = RfqWithCounts & {
   responses: RfqResponseWithVendor[];
 };
 
+export interface ProductUpdate {
+  categoryId?: number;
+  /** @minLength 1 */
+  name?: string;
+  description?: string;
+  /** @minLength 1 */
+  unit?: string;
+  imageUrl?: string;
+}
+
+export interface WishlistItem {
+  id: number;
+  userId: string;
+  productId: number;
+  createdAt: string;
+}
+
+export interface WishlistInput {
+  productId: number;
+}
+
+export type WishlistItemWithProduct = WishlistItem & ({
+  productName: string;
+  productUnit: string;
+  categoryName: string;
+  /** @nullable */
+  minPrice?: number | null;
+  offerCount: number;
+  /** @nullable */
+  imageUrl?: string | null;
+});
+
+export interface Notification {
+  id: number;
+  userId: string;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  /** @nullable */
+  relatedId?: number | null;
+  createdAt: string;
+}
+
 /**
  * Opaque session token — `Bearer <sid>`.
  */

@@ -1,3 +1,6 @@
 - [api-client-react imports](api-client-react-imports.md) — always import hooks/types/query-keys from the package root, never a `/src/generated/...` subpath.
 - [New composite libs need composite:true](composite-lib-setup.md) — a lib referenced in root tsconfig.json references must set composite/declarationMap/emitDeclarationOnly or tsc --build fails with TS6306.
 - [React Query needs explicit provider](react-query-provider-setup.md) — Vite/React app scaffolds don't always wrap the app in QueryClientProvider; missing it causes a silent-until-runtime "No QueryClient set" crash on any page using query hooks.
+- [Artifact workflows need PORT and BASE_PATH](artifact-workflow-env.md) — manually configured workflows (not artifact-managed) don't inject PORT or BASE_PATH; prefix the command: `PORT=XXXX BASE_PATH=/ pnpm ...`
+- [OpenAPI duplicate path keys break codegen](openapi-duplicate-paths.md) — all HTTP verbs for the same path must be nested under one path entry; duplicate path keys in YAML cause orval to fail with "Failed to resolve input".
+- [Admin products query invalidation must use generated keys](react-query-invalidation-keys.md) — always use `getListProductsQueryKey()`, `getListCategoriesQueryKey()` etc from @workspace/api-client-react; string-based invalidation (['products']) does not match the path-based keys orval generates.
