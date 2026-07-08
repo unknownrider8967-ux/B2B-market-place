@@ -8,6 +8,7 @@ import Cart from "@/pages/buyer/cart";
 import BuyerOrders from "@/pages/buyer/orders";
 import BuyerRfqs from "@/pages/buyer/rfqs";
 import BuyerWishlist from "@/pages/buyer/wishlist";
+import Compare from "@/pages/buyer/compare";
 import VendorDashboard from "@/pages/vendor/dashboard";
 import VendorOffers from "@/pages/vendor/offers";
 import VendorOrders from "@/pages/vendor/orders";
@@ -40,6 +41,9 @@ export default function App() {
       </Route>
       <Route path="/wishlist">
         <AppLayout allowedRoles={["buyer"]}><BuyerWishlist /></AppLayout>
+      </Route>
+      <Route path="/compare">
+        <AppLayout allowedRoles={["buyer"]}><Compare /></AppLayout>
       </Route>
 
       {/* Vendor Routes */}

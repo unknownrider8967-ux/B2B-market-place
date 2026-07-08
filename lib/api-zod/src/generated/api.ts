@@ -985,3 +985,90 @@ export const MarkNotificationReadResponse = zod.object({
 })
 
 
+/**
+ * @summary List all reviews for a product
+ */
+export const ListProductReviewsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const listProductReviewsResponseReviewsItemOneRatingMax = 5;
+
+
+
+export const ListProductReviewsResponse = zod.object({
+  "reviews": zod.array(zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "productId": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "rating": zod.number().min(1).max(listProductReviewsResponseReviewsItemOneRatingMax),
+  "comment": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "vendorName": zod.string(),
+  "reviewerName": zod.string()
+}))),
+  "vendorStats": zod.array(zod.object({
+  "vendorCompanyId": zod.number(),
+  "avgRating": zod.number(),
+  "reviewCount": zod.number()
+})),
+  "overallAvg": zod.number().nullish(),
+  "totalCount": zod.number()
+})
+
+
+/**
+ * @summary Submit a product/vendor review (must have purchased)
+ */
+export const createReviewBodyRatingMax = 5;
+
+export const createReviewBodyCommentMax = 2000;
+
+
+
+export const CreateReviewBody = zod.object({
+  "productId": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "rating": zod.number().min(1).max(createReviewBodyRatingMax),
+  "comment": zod.string().max(createReviewBodyCommentMax).optional()
+})
+
+export const createReviewResponseRatingMax = 5;
+
+
+
+export const CreateReviewResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "productId": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "rating": zod.number().min(1).max(createReviewResponseRatingMax),
+  "comment": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List current buyer's reviews
+ */
+export const listMyReviewsResponseOneRatingMax = 5;
+
+
+
+export const ListMyReviewsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "productId": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "rating": zod.number().min(1).max(listMyReviewsResponseOneRatingMax),
+  "comment": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "vendorName": zod.string(),
+  "reviewerName": zod.string()
+}))
+export const ListMyReviewsResponse = zod.array(ListMyReviewsResponseItem)
+
+

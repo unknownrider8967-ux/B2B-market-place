@@ -1,2 +1,3 @@
 export * from "./generated/api";
-export * from "./generated/types";
+// AuthUser is a TypeScript interface (no Zod schema counterpart) used by the API server auth layer
+export type { AuthUser } from "./generated/types/authUser";

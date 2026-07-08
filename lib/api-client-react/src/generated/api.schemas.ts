@@ -454,6 +454,52 @@ export type WishlistItemWithProduct = WishlistItem & ({
   imageUrl?: string | null;
 });
 
+export interface Review {
+  id: number;
+  userId: string;
+  productId: number;
+  vendorCompanyId: number;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  /** @nullable */
+  comment?: string | null;
+  createdAt: string;
+}
+
+export type ReviewWithMeta = Review & {
+  vendorName: string;
+  reviewerName: string;
+};
+
+export interface VendorReviewStat {
+  vendorCompanyId: number;
+  avgRating: number;
+  reviewCount: number;
+}
+
+export interface ProductReviewsResponse {
+  reviews: ReviewWithMeta[];
+  vendorStats: VendorReviewStat[];
+  /** @nullable */
+  overallAvg?: number | null;
+  totalCount: number;
+}
+
+export interface CreateReviewBody {
+  productId: number;
+  vendorCompanyId: number;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  /** @maxLength 2000 */
+  comment?: string;
+}
+
 export interface Notification {
   id: number;
   userId: string;
