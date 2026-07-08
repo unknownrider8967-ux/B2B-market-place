@@ -11,10 +11,15 @@ import type { VendorOfferStatus } from './vendorOfferStatus';
 export interface VendorOffer {
   id: number;
   productId: number;
+  /** @nullable */
+  variantId?: number | null;
   vendorCompanyId: number;
+  /** @nullable */
+  warehouseId?: number | null;
   price: number;
   moq: number;
   stock: number;
+  lowStockThreshold?: number;
   deliveryDays: number;
   priceTiers: PriceTier[];
   status: VendorOfferStatus;

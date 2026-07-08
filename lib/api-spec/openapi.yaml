@@ -2116,6 +2116,469 @@ paths:
                 items:
                   $ref: "#/components/schemas/ReviewWithMeta"
 
+  /products/{id}/variants:
+    get:
+      operationId: listProductVariants
+      tags: [variants]
+      summary: List variants for a master product (e.g. sizes)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Variants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductVariant"
+  /admin/products/{id}/variants:
+    post:
+      operationId: createProductVariant
+      tags: [variants]
+      summary: Add a variant to a master product (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductVariantInput"
+      responses:
+        "201":
+          description: Variant created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductVariant"
+  /admin/variants/{id}:
+    delete:
+      operationId: deleteProductVariant
+      tags: [variants]
+      summary: Remove a product variant (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /vendor/warehouses:
+    get:
+      operationId: listMyWarehouses
+      tags: [warehouses]
+      summary: List the current vendor's warehouses
+      responses:
+        "200":
+          description: Warehouses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Warehouse"
+    post:
+      operationId: createWarehouse
+      tags: [warehouses]
+      summary: Create a warehouse for the current vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WarehouseInput"
+      responses:
+        "201":
+          description: Warehouse created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Warehouse"
+  /vendor/warehouses/{id}:
+    patch:
+      operationId: updateWarehouse
+      tags: [warehouses]
+      summary: Update a warehouse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WarehouseInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Warehouse"
+    delete:
+      operationId: deleteWarehouse
+      tags: [warehouses]
+      summary: Delete a warehouse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /vendor/inventory/alerts:
+    get:
+      operationId: listInventoryAlerts
+      tags: [warehouses]
+      summary: Low-stock and out-of-stock offer alerts for the current vendor
+      responses:
+        "200":
+          description: Inventory alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryAlert"
+
+  /vendor/shipping-zones:
+    get:
+      operationId: listMyShippingZones
+      tags: [shipping]
+      summary: List the current vendor's shipping zones
+      responses:
+        "200":
+          description: Shipping zones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShippingZone"
+    post:
+      operationId: createShippingZone
+      tags: [shipping]
+      summary: Create a shipping zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShippingZoneInput"
+      responses:
+        "201":
+          description: Zone created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShippingZone"
+  /vendor/shipping-zones/{id}:
+    patch:
+      operationId: updateShippingZone
+      tags: [shipping]
+      summary: Update a shipping zone
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShippingZoneInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShippingZone"
+    delete:
+      operationId: deleteShippingZone
+      tags: [shipping]
+      summary: Delete a shipping zone
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/coupons:
+    get:
+      operationId: listCoupons
+      tags: [coupons]
+      summary: List all coupons (admin)
+      responses:
+        "200":
+          description: Coupons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Coupon"
+    post:
+      operationId: createCoupon
+      tags: [coupons]
+      summary: Create a coupon (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CouponInput"
+      responses:
+        "201":
+          description: Coupon created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Coupon"
+  /admin/coupons/{id}:
+    patch:
+      operationId: updateCoupon
+      tags: [coupons]
+      summary: Update a coupon (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CouponInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Coupon"
+    delete:
+      operationId: deleteCoupon
+      tags: [coupons]
+      summary: Delete a coupon (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+  /coupons/validate:
+    get:
+      operationId: validateCoupon
+      tags: [coupons]
+      summary: Validate a coupon code against a cart subtotal
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: subtotal
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Coupon validity and computed discount
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CouponValidation"
+
+  /vendor-orders/{id}/po-pdf:
+    get:
+      operationId: getVendorOrderPoPdf
+      tags: [vendor-orders]
+      summary: Download the purchase order PDF for a vendor sub-order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: PDF binary
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  /orders/{id}/reorder:
+    post:
+      operationId: reorderOrder
+      tags: [orders]
+      summary: Add all items from a past order back into the current cart (buy again)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Number of items re-added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReorderResult"
+
+  /vendor/scorecard:
+    get:
+      operationId: getMyVendorScorecard
+      tags: [scorecards]
+      summary: Performance scorecard for the current vendor
+      responses:
+        "200":
+          description: Scorecard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorScorecard"
+  /admin/companies/{id}/scorecard:
+    get:
+      operationId: getVendorScorecard
+      tags: [scorecards]
+      summary: Performance scorecard for a given vendor (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Scorecard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorScorecard"
+
+  /vendor/offers/bulk-upload:
+    post:
+      operationId: bulkUploadOffers
+      tags: [offers]
+      summary: Bulk-create/update vendor offers from CSV rows (productId,price,moq,stock,deliveryDays)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkUploadOffersBody"
+      responses:
+        "200":
+          description: Bulk upload result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkUploadResult"
+
+  /admin/reports/sales:
+    get:
+      operationId: getSalesReport
+      tags: [reports]
+      summary: Sales revenue/order trend report (admin)
+      parameters:
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Sales report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesReport"
+  /admin/reports/vendors:
+    get:
+      operationId: getVendorReport
+      tags: [reports]
+      summary: Per-vendor performance report (admin)
+      responses:
+        "200":
+          description: Vendor report rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VendorReportRow"
+  /admin/reports/commission:
+    get:
+      operationId: getCommissionReport
+      tags: [reports]
+      summary: Commission earned report grouped by vendor subtype (admin)
+      responses:
+        "200":
+          description: Commission report rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommissionReportRow"
+
+  /admin/audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: System-wide audit trail (admin)
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditLog"
+
 components:
   parameters:
     AuthorizationSessionHeader:
@@ -2450,13 +2913,19 @@ components:
           type: integer
         productId:
           type: integer
+        variantId:
+          type: [integer, "null"]
         vendorCompanyId:
           type: integer
+        warehouseId:
+          type: [integer, "null"]
         price:
           type: number
         moq:
           type: integer
         stock:
+          type: integer
+        lowStockThreshold:
           type: integer
         deliveryDays:
           type: integer
@@ -2476,6 +2945,13 @@ components:
       properties:
         productId:
           type: integer
+        variantId:
+          type: integer
+        warehouseId:
+          type: integer
+        lowStockThreshold:
+          type: integer
+          minimum: 0
         price:
           type: number
           minimum: 0
@@ -2500,6 +2976,10 @@ components:
         moq:
           type: integer
         stock:
+          type: integer
+        warehouseId:
+          type: integer
+        lowStockThreshold:
           type: integer
         deliveryDays:
           type: integer
@@ -3486,3 +3966,300 @@ components:
           type: boolean
         sortOrder:
           type: integer
+
+    ProductVariant:
+      type: object
+      required: [id, productId, name, createdAt]
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        name:
+          type: string
+        sku:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+    ProductVariantInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        sku:
+          type: string
+
+    Warehouse:
+      type: object
+      required: [id, vendorCompanyId, name, createdAt]
+      properties:
+        id:
+          type: integer
+        vendorCompanyId:
+          type: integer
+        name:
+          type: string
+        address:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+    WarehouseInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+    InventoryAlert:
+      type: object
+      required: [offerId, productId, productName, stock, lowStockThreshold, severity]
+      properties:
+        offerId:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        stock:
+          type: integer
+        lowStockThreshold:
+          type: integer
+        severity:
+          type: string
+          enum: [low_stock, out_of_stock]
+
+    ShippingZone:
+      type: object
+      required: [id, vendorCompanyId, name, regions, rate, etaDays, createdAt]
+      properties:
+        id:
+          type: integer
+        vendorCompanyId:
+          type: integer
+        name:
+          type: string
+        regions:
+          type: string
+        rate:
+          type: number
+        etaDays:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    ShippingZoneInput:
+      type: object
+      required: [name, regions, rate, etaDays]
+      properties:
+        name:
+          type: string
+        regions:
+          type: string
+        rate:
+          type: number
+          minimum: 0
+        etaDays:
+          type: integer
+          minimum: 0
+
+    Coupon:
+      type: object
+      required: [id, code, discountType, discountValue, usedCount, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        discountType:
+          type: string
+          enum: [percentage, fixed]
+        discountValue:
+          type: number
+        minOrderValue:
+          type: [number, "null"]
+        usageLimit:
+          type: [integer, "null"]
+        usedCount:
+          type: integer
+        isActive:
+          type: boolean
+        expiresAt:
+          type: [string, "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    CouponInput:
+      type: object
+      required: [code, discountType, discountValue]
+      properties:
+        code:
+          type: string
+        discountType:
+          type: string
+          enum: [percentage, fixed]
+        discountValue:
+          type: number
+          minimum: 0
+        minOrderValue:
+          type: number
+        usageLimit:
+          type: integer
+        isActive:
+          type: boolean
+        expiresAt:
+          type: string
+          format: date-time
+    CouponValidation:
+      type: object
+      required: [valid, discountAmount]
+      properties:
+        valid:
+          type: boolean
+        reason:
+          type: [string, "null"]
+        discountAmount:
+          type: number
+
+    ReorderResult:
+      type: object
+      required: [itemsAdded]
+      properties:
+        itemsAdded:
+          type: integer
+
+    VendorScorecard:
+      type: object
+      required:
+        [
+          vendorCompanyId,
+          fulfillmentRate,
+          cancellationRate,
+          avgDeliveryDays,
+          avgRating,
+          totalOrders,
+          totalReviews,
+        ]
+      properties:
+        vendorCompanyId:
+          type: integer
+        fulfillmentRate:
+          type: number
+        cancellationRate:
+          type: number
+        avgDeliveryDays:
+          type: number
+        avgRating:
+          type: number
+        totalOrders:
+          type: integer
+        totalReviews:
+          type: integer
+
+    BulkUploadOffersRow:
+      type: object
+      required: [productId, price, moq, stock, deliveryDays]
+      properties:
+        productId:
+          type: integer
+        price:
+          type: number
+        moq:
+          type: integer
+        stock:
+          type: integer
+        deliveryDays:
+          type: integer
+    BulkUploadOffersBody:
+      type: object
+      required: [rows]
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/BulkUploadOffersRow"
+    BulkUploadResult:
+      type: object
+      required: [created, updated, errors]
+      properties:
+        created:
+          type: integer
+        updated:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+
+    SalesReportPoint:
+      type: object
+      required: [date, revenue, orders]
+      properties:
+        date:
+          type: string
+        revenue:
+          type: number
+        orders:
+          type: integer
+    SalesReport:
+      type: object
+      required: [points, totalRevenue, totalOrders]
+      properties:
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/SalesReportPoint"
+        totalRevenue:
+          type: number
+        totalOrders:
+          type: integer
+    VendorReportRow:
+      type: object
+      required: [vendorCompanyId, vendorName, totalOrders, totalRevenue, avgRating]
+      properties:
+        vendorCompanyId:
+          type: integer
+        vendorName:
+          type: string
+        totalOrders:
+          type: integer
+        totalRevenue:
+          type: number
+        avgRating:
+          type: number
+    CommissionReportRow:
+      type: object
+      required: [subtype, ratePercent, totalRevenue, totalCommission]
+      properties:
+        subtype:
+          type: string
+        ratePercent:
+          type: number
+        totalRevenue:
+          type: number
+        totalCommission:
+          type: number
+
+    AuditLog:
+      type: object
+      required: [id, userId, action, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        action:
+          type: string
+        entityType:
+          type: [string, "null"]
+        entityId:
+          type: [integer, "null"]
+        metadata:
+          type: [object, "null"]
+        createdAt:
+          type: string
+          format: date-time

@@ -20,3 +20,8 @@ export * from "./suborders";
 export * from "./substitutes";
 export * from "./batches";
 export * from "./cms";
+export * from "./variants";
+export * from "./warehouses";
+export * from "./shipping";
+export * from "./coupons";
+export * from "./audit";

@@ -7,6 +7,7 @@ import {
   useListProducts,
   useCreateProduct,
   useListCategories,
+  useBulkUploadOffers,
 } from "@workspace/api-client-react";
 import {
   getListMyOffersQueryKey,
@@ -22,7 +23,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Pencil, Trash2, PackagePlus, Package } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, PackagePlus, Package, Upload } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 type TierDraft = { minQty: string; maxQty: string; price: string };
 
@@ -56,6 +58,12 @@ export default function VendorOffers() {
   const [tiers, setTiers] = useState<TierDraft[]>([{ ...emptyTier }]);
 
   const [productForm, setProductForm] = useState({ categoryId: "", name: "", description: "", unit: "" });
+
+  // Bulk upload state
+  const bulkUpload = useBulkUploadOffers();
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [bulkCsv, setBulkCsv] = useState("");
+  const [bulkResult, setBulkResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null);
 
   const invalidateOffers = () => queryClient.invalidateQueries({ queryKey: getListMyOffersQueryKey() });
 

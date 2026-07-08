@@ -273,10 +273,15 @@ export const VendorOfferStatus = {
 export interface VendorOffer {
   id: number;
   productId: number;
+  /** @nullable */
+  variantId?: number | null;
   vendorCompanyId: number;
+  /** @nullable */
+  warehouseId?: number | null;
   price: number;
   moq: number;
   stock: number;
+  lowStockThreshold?: number;
   deliveryDays: number;
   priceTiers: PriceTier[];
   status: VendorOfferStatus;
@@ -285,6 +290,10 @@ export interface VendorOffer {
 
 export interface VendorOfferInput {
   productId: number;
+  variantId?: number;
+  warehouseId?: number;
+  /** @minimum 0 */
+  lowStockThreshold?: number;
   /** @minimum 0 */
   price: number;
   /** @minimum 1 */
@@ -308,6 +317,8 @@ export interface VendorOfferUpdate {
   price?: number;
   moq?: number;
   stock?: number;
+  warehouseId?: number;
+  lowStockThreshold?: number;
   deliveryDays?: number;
   priceTiers?: PriceTier[];
   status?: VendorOfferUpdateStatus;
@@ -758,15 +769,18 @@ export interface CreateReturnBody {
   reason: string;
 }
 
+export type ApprovalChainStepRole = typeof ApprovalChainStepRole[keyof typeof ApprovalChainStepRole];
+
+
+export const ApprovalChainStepRole = {
+  department_manager: 'department_manager',
+  procurement_manager: 'procurement_manager',
+  finance_manager: 'finance_manager',
+} as const;
+
 export interface ApprovalChainStep {
   order: number;
-  /** The role/title of the person who must approve at this step (e.g. "Department Head", "Procurement Manager") */
-  approverRole: string;
-  /**
-     * This step only applies to orders at or above this amount
-     * @nullable
-     */
-  minAmount?: number | null;
+  role: ApprovalChainStepRole;
 }
 
 export interface ApprovalChain {
@@ -789,7 +803,8 @@ export const ApprovalRequestLogEntryDecision = {
 } as const;
 
 export interface ApprovalRequestLogEntry {
-  step: number;
+  step: string;
+  userId: string;
   decision: ApprovalRequestLogEntryDecision;
   /** @nullable */
   note?: string | null;
@@ -809,7 +824,8 @@ export interface ApprovalRequest {
   id: number;
   orderId: number;
   buyerCompanyId: number;
-  currentStep: number;
+  steps: ApprovalChainStep[];
+  currentStepIndex: number;
   status: ApprovalRequestStatus;
   log: ApprovalRequestLogEntry[];
   createdAt: string;
@@ -839,7 +855,8 @@ export type WalletTransactionType = typeof WalletTransactionType[keyof typeof Wa
 
 
 export const WalletTransactionType = {
-  commission_earned: 'commission_earned',
+  sale: 'sale',
+  commission: 'commission',
   payout: 'payout',
   adjustment: 'adjustment',
 } as const;
@@ -1065,6 +1082,197 @@ export interface FaqInput {
   sortOrder?: number;
 }
 
+export interface ProductVariant {
+  id: number;
+  productId: number;
+  name: string;
+  /** @nullable */
+  sku?: string | null;
+  createdAt: string;
+}
+
+export interface ProductVariantInput {
+  name: string;
+  sku?: string;
+}
+
+export interface Warehouse {
+  id: number;
+  vendorCompanyId: number;
+  name: string;
+  /** @nullable */
+  address?: string | null;
+  createdAt: string;
+}
+
+export interface WarehouseInput {
+  name: string;
+  address?: string;
+}
+
+export type InventoryAlertSeverity = typeof InventoryAlertSeverity[keyof typeof InventoryAlertSeverity];
+
+
+export const InventoryAlertSeverity = {
+  low_stock: 'low_stock',
+  out_of_stock: 'out_of_stock',
+} as const;
+
+export interface InventoryAlert {
+  offerId: number;
+  productId: number;
+  productName: string;
+  stock: number;
+  lowStockThreshold: number;
+  severity: InventoryAlertSeverity;
+}
+
+export interface ShippingZone {
+  id: number;
+  vendorCompanyId: number;
+  name: string;
+  regions: string;
+  rate: number;
+  etaDays: number;
+  createdAt: string;
+}
+
+export interface ShippingZoneInput {
+  name: string;
+  regions: string;
+  /** @minimum 0 */
+  rate: number;
+  /** @minimum 0 */
+  etaDays: number;
+}
+
+export type CouponDiscountType = typeof CouponDiscountType[keyof typeof CouponDiscountType];
+
+
+export const CouponDiscountType = {
+  percentage: 'percentage',
+  fixed: 'fixed',
+} as const;
+
+export interface Coupon {
+  id: number;
+  code: string;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  /** @nullable */
+  minOrderValue?: number | null;
+  /** @nullable */
+  usageLimit?: number | null;
+  usedCount: number;
+  isActive: boolean;
+  /** @nullable */
+  expiresAt?: string | null;
+  createdAt: string;
+}
+
+export type CouponInputDiscountType = typeof CouponInputDiscountType[keyof typeof CouponInputDiscountType];
+
+
+export const CouponInputDiscountType = {
+  percentage: 'percentage',
+  fixed: 'fixed',
+} as const;
+
+export interface CouponInput {
+  code: string;
+  discountType: CouponInputDiscountType;
+  /** @minimum 0 */
+  discountValue: number;
+  minOrderValue?: number;
+  usageLimit?: number;
+  isActive?: boolean;
+  expiresAt?: string;
+}
+
+export interface CouponValidation {
+  valid: boolean;
+  /** @nullable */
+  reason?: string | null;
+  discountAmount: number;
+}
+
+export interface ReorderResult {
+  itemsAdded: number;
+}
+
+export interface VendorScorecard {
+  vendorCompanyId: number;
+  fulfillmentRate: number;
+  cancellationRate: number;
+  avgDeliveryDays: number;
+  avgRating: number;
+  totalOrders: number;
+  totalReviews: number;
+}
+
+export interface BulkUploadOffersRow {
+  productId: number;
+  price: number;
+  moq: number;
+  stock: number;
+  deliveryDays: number;
+}
+
+export interface BulkUploadOffersBody {
+  rows: BulkUploadOffersRow[];
+}
+
+export interface BulkUploadResult {
+  created: number;
+  updated: number;
+  errors: string[];
+}
+
+export interface SalesReportPoint {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+export interface SalesReport {
+  points: SalesReportPoint[];
+  totalRevenue: number;
+  totalOrders: number;
+}
+
+export interface VendorReportRow {
+  vendorCompanyId: number;
+  vendorName: string;
+  totalOrders: number;
+  totalRevenue: number;
+  avgRating: number;
+}
+
+export interface CommissionReportRow {
+  subtype: string;
+  ratePercent: number;
+  totalRevenue: number;
+  totalCommission: number;
+}
+
+/**
+ * @nullable
+ */
+export type AuditLogMetadata = { [key: string]: unknown } | null;
+
+export interface AuditLog {
+  id: number;
+  userId: string;
+  action: string;
+  /** @nullable */
+  entityType?: string | null;
+  /** @nullable */
+  entityId?: number | null;
+  /** @nullable */
+  metadata?: AuditLogMetadata;
+  createdAt: string;
+}
+
 /**
  * Opaque session token — `Bearer <sid>`.
  */
@@ -1222,5 +1430,18 @@ export type UpdateVendorOrderStatusBody = {
 export type ListProductsParams = {
 categoryId?: number;
 search?: string;
+};
+
+export type ValidateCouponParams = {
+code: string;
+subtotal: number;
+};
+
+export type GetSalesReportParams = {
+days?: number;
+};
+
+export type ListAuditLogsParams = {
+limit?: number;
 };
 

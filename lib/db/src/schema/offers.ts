@@ -11,10 +11,13 @@ export interface PriceTier {
 export const vendorOffersTable = pgTable("vendor_offers", {
   id: serial("id").primaryKey(),
   productId: integer("product_id").notNull(),
+  variantId: integer("variant_id"),
   vendorCompanyId: integer("vendor_company_id").notNull(),
+  warehouseId: integer("warehouse_id"),
   price: numeric("price", { precision: 12, scale: 2 }).notNull(),
   moq: integer("moq").notNull().default(1),
   stock: integer("stock").notNull().default(0),
+  lowStockThreshold: integer("low_stock_threshold").notNull().default(10),
   deliveryDays: integer("delivery_days").notNull().default(3),
   priceTiers: jsonb("price_tiers").$type<PriceTier[]>().notNull().default([]),
   status: varchar("status", { length: 20 }).notNull().default("active"), // active | inactive

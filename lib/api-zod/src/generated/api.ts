@@ -634,8 +634,7 @@ export const GetApprovalChainResponse = zod.union([zod.object({
   "buyerCompanyId": zod.number(),
   "steps": zod.array(zod.object({
   "order": zod.number(),
-  "approverRole": zod.string().describe('The role\/title of the person who must approve at this step (e.g. \"Department Head\", \"Procurement Manager\")'),
-  "minAmount": zod.number().nullish().describe('This step only applies to orders at or above this amount')
+  "role": zod.enum(['department_manager', 'procurement_manager', 'finance_manager'])
 })),
   "createdAt": zod.coerce.date()
 }),zod.null()])
@@ -647,8 +646,7 @@ export const GetApprovalChainResponse = zod.union([zod.object({
 export const SetApprovalChainBody = zod.object({
   "steps": zod.array(zod.object({
   "order": zod.number(),
-  "approverRole": zod.string().describe('The role\/title of the person who must approve at this step (e.g. \"Department Head\", \"Procurement Manager\")'),
-  "minAmount": zod.number().nullish().describe('This step only applies to orders at or above this amount')
+  "role": zod.enum(['department_manager', 'procurement_manager', 'finance_manager'])
 }))
 })
 
@@ -657,8 +655,7 @@ export const SetApprovalChainResponse = zod.object({
   "buyerCompanyId": zod.number(),
   "steps": zod.array(zod.object({
   "order": zod.number(),
-  "approverRole": zod.string().describe('The role\/title of the person who must approve at this step (e.g. \"Department Head\", \"Procurement Manager\")'),
-  "minAmount": zod.number().nullish().describe('This step only applies to orders at or above this amount')
+  "role": zod.enum(['department_manager', 'procurement_manager', 'finance_manager'])
 })),
   "createdAt": zod.coerce.date()
 })
@@ -671,10 +668,15 @@ export const ListApprovalRequestsResponseItem = zod.object({
   "id": zod.number(),
   "orderId": zod.number(),
   "buyerCompanyId": zod.number(),
-  "currentStep": zod.number(),
+  "steps": zod.array(zod.object({
+  "order": zod.number(),
+  "role": zod.enum(['department_manager', 'procurement_manager', 'finance_manager'])
+})),
+  "currentStepIndex": zod.number(),
   "status": zod.enum(['pending', 'approved', 'rejected']),
   "log": zod.array(zod.object({
-  "step": zod.number(),
+  "step": zod.string(),
+  "userId": zod.string(),
   "decision": zod.enum(['approved', 'rejected']),
   "note": zod.string().nullish(),
   "decidedAt": zod.coerce.date()
@@ -700,10 +702,15 @@ export const DecideApprovalRequestResponse = zod.object({
   "id": zod.number(),
   "orderId": zod.number(),
   "buyerCompanyId": zod.number(),
-  "currentStep": zod.number(),
+  "steps": zod.array(zod.object({
+  "order": zod.number(),
+  "role": zod.enum(['department_manager', 'procurement_manager', 'finance_manager'])
+})),
+  "currentStepIndex": zod.number(),
   "status": zod.enum(['pending', 'approved', 'rejected']),
   "log": zod.array(zod.object({
-  "step": zod.number(),
+  "step": zod.string(),
+  "userId": zod.string(),
   "decision": zod.enum(['approved', 'rejected']),
   "note": zod.string().nullish(),
   "decidedAt": zod.coerce.date()
@@ -798,7 +805,7 @@ export const GetMyWalletResponse = zod.object({
   "transactions": zod.array(zod.object({
   "id": zod.number(),
   "walletId": zod.number(),
-  "type": zod.enum(['commission_earned', 'payout', 'adjustment']),
+  "type": zod.enum(['sale', 'commission', 'payout', 'adjustment']),
   "amount": zod.number(),
   "description": zod.string().nullable(),
   "relatedOrderId": zod.number().nullish(),
@@ -1625,10 +1632,13 @@ export const ListProductOffersParams = zod.object({
 export const ListProductOffersResponseItem = zod.object({
   "id": zod.number(),
   "productId": zod.number(),
+  "variantId": zod.number().nullish(),
   "vendorCompanyId": zod.number(),
+  "warehouseId": zod.number().nullish(),
   "price": zod.number(),
   "moq": zod.number(),
   "stock": zod.number(),
+  "lowStockThreshold": zod.number().optional(),
   "deliveryDays": zod.number(),
   "priceTiers": zod.array(zod.object({
   "minQty": zod.number(),
@@ -1647,6 +1657,8 @@ export const ListProductOffersResponse = zod.array(ListProductOffersResponseItem
 /**
  * @summary Create a vendor offer on a master product
  */
+export const createOfferBodyLowStockThresholdMin = 0;
+
 export const createOfferBodyPriceMin = 0;
 
 
@@ -1658,6 +1670,9 @@ export const createOfferBodyDeliveryDaysMin = 0;
 
 export const CreateOfferBody = zod.object({
   "productId": zod.number(),
+  "variantId": zod.number().optional(),
+  "warehouseId": zod.number().optional(),
+  "lowStockThreshold": zod.number().min(createOfferBodyLowStockThresholdMin).optional(),
   "price": zod.number().min(createOfferBodyPriceMin),
   "moq": zod.number().min(1),
   "stock": zod.number().min(createOfferBodyStockMin),
@@ -1672,10 +1687,13 @@ export const CreateOfferBody = zod.object({
 export const CreateOfferResponse = zod.object({
   "id": zod.number(),
   "productId": zod.number(),
+  "variantId": zod.number().nullish(),
   "vendorCompanyId": zod.number(),
+  "warehouseId": zod.number().nullish(),
   "price": zod.number(),
   "moq": zod.number(),
   "stock": zod.number(),
+  "lowStockThreshold": zod.number().optional(),
   "deliveryDays": zod.number(),
   "priceTiers": zod.array(zod.object({
   "minQty": zod.number(),
@@ -1693,10 +1711,13 @@ export const CreateOfferResponse = zod.object({
 export const ListMyOffersResponseItem = zod.object({
   "id": zod.number(),
   "productId": zod.number(),
+  "variantId": zod.number().nullish(),
   "vendorCompanyId": zod.number(),
+  "warehouseId": zod.number().nullish(),
   "price": zod.number(),
   "moq": zod.number(),
   "stock": zod.number(),
+  "lowStockThreshold": zod.number().optional(),
   "deliveryDays": zod.number(),
   "priceTiers": zod.array(zod.object({
   "minQty": zod.number(),
@@ -1723,6 +1744,8 @@ export const UpdateOfferBody = zod.object({
   "price": zod.number().optional(),
   "moq": zod.number().optional(),
   "stock": zod.number().optional(),
+  "warehouseId": zod.number().optional(),
+  "lowStockThreshold": zod.number().optional(),
   "deliveryDays": zod.number().optional(),
   "priceTiers": zod.array(zod.object({
   "minQty": zod.number(),
@@ -1735,10 +1758,13 @@ export const UpdateOfferBody = zod.object({
 export const UpdateOfferResponse = zod.object({
   "id": zod.number(),
   "productId": zod.number(),
+  "variantId": zod.number().nullish(),
   "vendorCompanyId": zod.number(),
+  "warehouseId": zod.number().nullish(),
   "price": zod.number(),
   "moq": zod.number(),
   "stock": zod.number(),
+  "lowStockThreshold": zod.number().optional(),
   "deliveryDays": zod.number(),
   "priceTiers": zod.array(zod.object({
   "minQty": zod.number(),
@@ -2314,5 +2340,462 @@ export const ListMyReviewsResponseItem = zod.object({
   "reviewerName": zod.string()
 }))
 export const ListMyReviewsResponse = zod.array(ListMyReviewsResponseItem)
+
+
+/**
+ * @summary List variants for a master product (e.g. sizes)
+ */
+export const ListProductVariantsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListProductVariantsResponseItem = zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "name": zod.string(),
+  "sku": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListProductVariantsResponse = zod.array(ListProductVariantsResponseItem)
+
+
+/**
+ * @summary Add a variant to a master product (admin)
+ */
+export const CreateProductVariantParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateProductVariantBody = zod.object({
+  "name": zod.string(),
+  "sku": zod.string().optional()
+})
+
+export const CreateProductVariantResponse = zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "name": zod.string(),
+  "sku": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Remove a product variant (admin)
+ */
+export const DeleteProductVariantParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteProductVariantResponse = zod.void()
+
+
+/**
+ * @summary List the current vendor's warehouses
+ */
+export const ListMyWarehousesResponseItem = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "name": zod.string(),
+  "address": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListMyWarehousesResponse = zod.array(ListMyWarehousesResponseItem)
+
+
+/**
+ * @summary Create a warehouse for the current vendor
+ */
+export const CreateWarehouseBody = zod.object({
+  "name": zod.string(),
+  "address": zod.string().optional()
+})
+
+export const CreateWarehouseResponse = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "name": zod.string(),
+  "address": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a warehouse
+ */
+export const UpdateWarehouseParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateWarehouseBody = zod.object({
+  "name": zod.string(),
+  "address": zod.string().optional()
+})
+
+export const UpdateWarehouseResponse = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "name": zod.string(),
+  "address": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a warehouse
+ */
+export const DeleteWarehouseParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteWarehouseResponse = zod.void()
+
+
+/**
+ * @summary Low-stock and out-of-stock offer alerts for the current vendor
+ */
+export const ListInventoryAlertsResponseItem = zod.object({
+  "offerId": zod.number(),
+  "productId": zod.number(),
+  "productName": zod.string(),
+  "stock": zod.number(),
+  "lowStockThreshold": zod.number(),
+  "severity": zod.enum(['low_stock', 'out_of_stock'])
+})
+export const ListInventoryAlertsResponse = zod.array(ListInventoryAlertsResponseItem)
+
+
+/**
+ * @summary List the current vendor's shipping zones
+ */
+export const ListMyShippingZonesResponseItem = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "name": zod.string(),
+  "regions": zod.string(),
+  "rate": zod.number(),
+  "etaDays": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const ListMyShippingZonesResponse = zod.array(ListMyShippingZonesResponseItem)
+
+
+/**
+ * @summary Create a shipping zone
+ */
+export const createShippingZoneBodyRateMin = 0;
+
+export const createShippingZoneBodyEtaDaysMin = 0;
+
+
+
+export const CreateShippingZoneBody = zod.object({
+  "name": zod.string(),
+  "regions": zod.string(),
+  "rate": zod.number().min(createShippingZoneBodyRateMin),
+  "etaDays": zod.number().min(createShippingZoneBodyEtaDaysMin)
+})
+
+export const CreateShippingZoneResponse = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "name": zod.string(),
+  "regions": zod.string(),
+  "rate": zod.number(),
+  "etaDays": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a shipping zone
+ */
+export const UpdateShippingZoneParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateShippingZoneBodyRateMin = 0;
+
+export const updateShippingZoneBodyEtaDaysMin = 0;
+
+
+
+export const UpdateShippingZoneBody = zod.object({
+  "name": zod.string(),
+  "regions": zod.string(),
+  "rate": zod.number().min(updateShippingZoneBodyRateMin),
+  "etaDays": zod.number().min(updateShippingZoneBodyEtaDaysMin)
+})
+
+export const UpdateShippingZoneResponse = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "name": zod.string(),
+  "regions": zod.string(),
+  "rate": zod.number(),
+  "etaDays": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a shipping zone
+ */
+export const DeleteShippingZoneParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteShippingZoneResponse = zod.void()
+
+
+/**
+ * @summary List all coupons (admin)
+ */
+export const ListCouponsResponseItem = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "discountType": zod.enum(['percentage', 'fixed']),
+  "discountValue": zod.number(),
+  "minOrderValue": zod.number().nullish(),
+  "usageLimit": zod.number().nullish(),
+  "usedCount": zod.number(),
+  "isActive": zod.boolean(),
+  "expiresAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListCouponsResponse = zod.array(ListCouponsResponseItem)
+
+
+/**
+ * @summary Create a coupon (admin)
+ */
+export const createCouponBodyDiscountValueMin = 0;
+
+
+
+export const CreateCouponBody = zod.object({
+  "code": zod.string(),
+  "discountType": zod.enum(['percentage', 'fixed']),
+  "discountValue": zod.number().min(createCouponBodyDiscountValueMin),
+  "minOrderValue": zod.number().optional(),
+  "usageLimit": zod.number().optional(),
+  "isActive": zod.boolean().optional(),
+  "expiresAt": zod.coerce.date().optional()
+})
+
+export const CreateCouponResponse = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "discountType": zod.enum(['percentage', 'fixed']),
+  "discountValue": zod.number(),
+  "minOrderValue": zod.number().nullish(),
+  "usageLimit": zod.number().nullish(),
+  "usedCount": zod.number(),
+  "isActive": zod.boolean(),
+  "expiresAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a coupon (admin)
+ */
+export const UpdateCouponParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateCouponBodyDiscountValueMin = 0;
+
+
+
+export const UpdateCouponBody = zod.object({
+  "code": zod.string(),
+  "discountType": zod.enum(['percentage', 'fixed']),
+  "discountValue": zod.number().min(updateCouponBodyDiscountValueMin),
+  "minOrderValue": zod.number().optional(),
+  "usageLimit": zod.number().optional(),
+  "isActive": zod.boolean().optional(),
+  "expiresAt": zod.coerce.date().optional()
+})
+
+export const UpdateCouponResponse = zod.object({
+  "id": zod.number(),
+  "code": zod.string(),
+  "discountType": zod.enum(['percentage', 'fixed']),
+  "discountValue": zod.number(),
+  "minOrderValue": zod.number().nullish(),
+  "usageLimit": zod.number().nullish(),
+  "usedCount": zod.number(),
+  "isActive": zod.boolean(),
+  "expiresAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a coupon (admin)
+ */
+export const DeleteCouponParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteCouponResponse = zod.void()
+
+
+/**
+ * @summary Validate a coupon code against a cart subtotal
+ */
+export const ValidateCouponQueryParams = zod.object({
+  "code": zod.coerce.string(),
+  "subtotal": zod.coerce.number()
+})
+
+export const ValidateCouponResponse = zod.object({
+  "valid": zod.boolean(),
+  "reason": zod.string().nullish(),
+  "discountAmount": zod.number()
+})
+
+
+/**
+ * @summary Download the purchase order PDF for a vendor sub-order
+ */
+export const GetVendorOrderPoPdfParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetVendorOrderPoPdfResponse = zod.unknown()
+
+
+/**
+ * @summary Add all items from a past order back into the current cart (buy again)
+ */
+export const ReorderOrderParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReorderOrderResponse = zod.object({
+  "itemsAdded": zod.number()
+})
+
+
+/**
+ * @summary Performance scorecard for the current vendor
+ */
+export const GetMyVendorScorecardResponse = zod.object({
+  "vendorCompanyId": zod.number(),
+  "fulfillmentRate": zod.number(),
+  "cancellationRate": zod.number(),
+  "avgDeliveryDays": zod.number(),
+  "avgRating": zod.number(),
+  "totalOrders": zod.number(),
+  "totalReviews": zod.number()
+})
+
+
+/**
+ * @summary Performance scorecard for a given vendor (admin)
+ */
+export const GetVendorScorecardParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetVendorScorecardResponse = zod.object({
+  "vendorCompanyId": zod.number(),
+  "fulfillmentRate": zod.number(),
+  "cancellationRate": zod.number(),
+  "avgDeliveryDays": zod.number(),
+  "avgRating": zod.number(),
+  "totalOrders": zod.number(),
+  "totalReviews": zod.number()
+})
+
+
+/**
+ * @summary Bulk-create/update vendor offers from CSV rows (productId,price,moq,stock,deliveryDays)
+ */
+export const BulkUploadOffersBody = zod.object({
+  "rows": zod.array(zod.object({
+  "productId": zod.number(),
+  "price": zod.number(),
+  "moq": zod.number(),
+  "stock": zod.number(),
+  "deliveryDays": zod.number()
+}))
+})
+
+export const BulkUploadOffersResponse = zod.object({
+  "created": zod.number(),
+  "updated": zod.number(),
+  "errors": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Sales revenue/order trend report (admin)
+ */
+export const getSalesReportQueryDaysDefault = 30;
+
+export const GetSalesReportQueryParams = zod.object({
+  "days": zod.coerce.number().default(getSalesReportQueryDaysDefault)
+})
+
+export const GetSalesReportResponse = zod.object({
+  "points": zod.array(zod.object({
+  "date": zod.string(),
+  "revenue": zod.number(),
+  "orders": zod.number()
+})),
+  "totalRevenue": zod.number(),
+  "totalOrders": zod.number()
+})
+
+
+/**
+ * @summary Per-vendor performance report (admin)
+ */
+export const GetVendorReportResponseItem = zod.object({
+  "vendorCompanyId": zod.number(),
+  "vendorName": zod.string(),
+  "totalOrders": zod.number(),
+  "totalRevenue": zod.number(),
+  "avgRating": zod.number()
+})
+export const GetVendorReportResponse = zod.array(GetVendorReportResponseItem)
+
+
+/**
+ * @summary Commission earned report grouped by vendor subtype (admin)
+ */
+export const GetCommissionReportResponseItem = zod.object({
+  "subtype": zod.string(),
+  "ratePercent": zod.number(),
+  "totalRevenue": zod.number(),
+  "totalCommission": zod.number()
+})
+export const GetCommissionReportResponse = zod.array(GetCommissionReportResponseItem)
+
+
+/**
+ * @summary System-wide audit trail (admin)
+ */
+export const listAuditLogsQueryLimitDefault = 100;
+
+export const ListAuditLogsQueryParams = zod.object({
+  "limit": zod.coerce.number().default(listAuditLogsQueryLimitDefault)
+})
+
+export const ListAuditLogsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.string(),
+  "action": zod.string(),
+  "entityType": zod.string().nullish(),
+  "entityId": zod.number().nullish(),
+  "metadata": zod.object({
+
+}).passthrough().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAuditLogsResponse = zod.array(ListAuditLogsResponseItem)
 
 

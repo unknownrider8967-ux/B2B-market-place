@@ -9,6 +9,10 @@ import type { PriceTier } from './priceTier';
 
 export interface VendorOfferInput {
   productId: number;
+  variantId?: number;
+  warehouseId?: number;
+  /** @minimum 0 */
+  lowStockThreshold?: number;
   /** @minimum 0 */
   price: number;
   /** @minimum 1 */

@@ -7,6 +7,9 @@ export const ordersTable = pgTable("orders", {
   buyerCompanyId: integer("buyer_company_id"),
   status: varchar("status", { length: 20 }).notNull().default("pending"), // pending | confirmed | shipped | completed | cancelled
   totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull(),
+  couponCode: varchar("coupon_code", { length: 40 }),
+  discountAmount: numeric("discount_amount", { precision: 12, scale: 2 }).notNull().default("0"),
+  shippingCost: numeric("shipping_cost", { precision: 12, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

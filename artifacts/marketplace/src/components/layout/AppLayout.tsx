@@ -4,11 +4,13 @@ import { Link, useLocation } from "wouter";
 import { Loader2, LogOut, Package, ShoppingCart, FileText, ClipboardList, LayoutDashboard, Building2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/ui/notification-bell";
+import { useTranslation } from "@/lib/i18n";
 
 export function AppLayout({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) {
   const { profile, isLoading } = useAuthGuard(allowedRoles);
   const { logout } = useAuth();
   const [location] = useLocation();
+  const { language, setLanguage } = useTranslation();
 
   if (isLoading) {
     return (
@@ -44,7 +46,16 @@ export function AppLayout({ children, allowedRoles }: { children: React.ReactNod
       <aside className="w-full md:w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
         <div className="h-16 flex items-center justify-between px-6 border-b border-sidebar-border bg-sidebar">
           <h1 className="text-xl font-bold text-sidebar-primary">MedSupply</h1>
-          <NotificationBell />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLanguage(language === "en" ? "ar" : "en")}
+              className="text-xs font-medium px-2 py-1 rounded border border-sidebar-border text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+              aria-label="Toggle language"
+            >
+              {language === "en" ? "AR" : "EN"}
+            </button>
+            <NotificationBell />
+          </div>
         </div>
         
         <div className="p-4 flex-1">

@@ -5,14 +5,9 @@
  * API specification for the B2B medical supplies marketplace
  * OpenAPI spec version: 0.1.0
  */
+import type { ApprovalChainStepRole } from './approvalChainStepRole';
 
 export interface ApprovalChainStep {
   order: number;
-  /** The role/title of the person who must approve at this step (e.g. "Department Head", "Procurement Manager") */
-  approverRole: string;
-  /**
-     * This step only applies to orders at or above this amount
-     * @nullable
-     */
-  minAmount?: number | null;
+  role: ApprovalChainStepRole;
 }

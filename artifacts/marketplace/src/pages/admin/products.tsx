@@ -7,9 +7,14 @@ import {
   useDeleteProduct,
   useCreateCategory,
   useDeleteCategory,
+  useListProductVariants,
+  useCreateProductVariant,
+  useDeleteProductVariant,
   getListProductsQueryKey,
   getListCategoriesQueryKey,
+  getListProductVariantsQueryKey,
 } from "@workspace/api-client-react";
+import type { ProductVariant } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +37,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Plus, Trash2, Pencil, Tag, Loader2, Search } from "lucide-react";
+import { Package, Plus, Trash2, Pencil, Tag, Loader2, Search, Layers, ChevronDown, ChevronRight } from "lucide-react";
 
 type ProductFormState = {
   name: string;
@@ -58,6 +63,9 @@ export default function AdminProducts() {
   const [productForm, setProductForm] = useState<ProductFormState>(EMPTY_PRODUCT);
   const [categoryForm, setCategoryForm] = useState({ name: "", slug: "" });
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
+  const [variantDialogProductId, setVariantDialogProductId] = useState<number | null>(null);
+  const [variantForm, setVariantForm] = useState({ name: "", sku: "" });
 
   const productsQueryKey = getListProductsQueryKey({ search: search || undefined });
   const categoriesQueryKey = getListCategoriesQueryKey();
@@ -73,6 +81,13 @@ export default function AdminProducts() {
   const deleteProduct = useDeleteProduct();
   const createCategory = useCreateCategory();
   const deleteCategory = useDeleteCategory();
+  const createVariant = useCreateProductVariant();
+  const deleteVariant = useDeleteProductVariant();
+
+  const { data: variants = [], isLoading: variantsLoading } = useListProductVariants(
+    expandedProductId ?? 0,
+    { query: { queryKey: getListProductVariantsQueryKey(expandedProductId ?? 0), enabled: expandedProductId !== null } },
+  );
 
   const openAddProduct = () => {
     setProductForm(EMPTY_PRODUCT);
@@ -126,6 +141,47 @@ export default function AdminProducts() {
         },
       );
     }
+  };
+
+  const handleOpenVariants = (productId: number) => {
+    setExpandedProductId((prev) => (prev === productId ? null : productId));
+  };
+
+  const handleAddVariant = (productId: number) => {
+    setVariantForm({ name: "", sku: "" });
+    setVariantDialogProductId(productId);
+  };
+
+  const handleVariantSubmit = () => {
+    if (!variantDialogProductId || !variantForm.name.trim()) {
+      toast({ title: "Variant name is required", variant: "destructive" });
+      return;
+    }
+    createVariant.mutate(
+      { id: variantDialogProductId, data: { name: variantForm.name.trim(), sku: variantForm.sku.trim() || undefined } },
+      {
+        onSuccess: () => {
+          toast({ title: "Variant added" });
+          queryClient.invalidateQueries({ queryKey: getListProductVariantsQueryKey(variantDialogProductId) });
+          setVariantDialogProductId(null);
+        },
+        onError: (err: any) => toast({ title: "Error", description: err?.message, variant: "destructive" }),
+      },
+    );
+  };
+
+  const handleDeleteVariant = (variant: ProductVariant) => {
+    if (!confirm(`Delete variant "${variant.name}"?`)) return;
+    deleteVariant.mutate(
+      { id: variant.id },
+      {
+        onSuccess: () => {
+          toast({ title: "Variant deleted" });
+          queryClient.invalidateQueries({ queryKey: getListProductVariantsQueryKey(variant.productId) });
+        },
+        onError: (err: any) => toast({ title: "Error", description: err?.message, variant: "destructive" }),
+      },
+    );
   };
 
   const handleDeleteProduct = (id: number, name: string) => {
@@ -235,45 +291,94 @@ export default function AdminProducts() {
                     </TableRow>
                   ) : (
                     products.map((p) => (
-                      <TableRow key={p.id} className="hover:bg-muted/30">
-                        <TableCell>
-                          <div className="font-medium text-foreground">{p.name}</div>
-                          {p.description && (
-                            <div className="text-xs text-muted-foreground line-clamp-1">{p.description}</div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{p.categoryName}</Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{p.unit}</TableCell>
-                        <TableCell>{p.offerCount}</TableCell>
-                        <TableCell>
-                          {p.minPrice != null ? (
-                            <span className="font-medium text-primary">${p.minPrice.toFixed(2)}</span>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEditProduct(p)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onClick={() => handleDeleteProduct(p.id, p.name)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                      <>
+                        <TableRow key={p.id} className="hover:bg-muted/30">
+                          <TableCell>
+                            <div className="font-medium text-foreground">{p.name}</div>
+                            {p.description && (
+                              <div className="text-xs text-muted-foreground line-clamp-1">{p.description}</div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{p.categoryName}</Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{p.unit}</TableCell>
+                          <TableCell>{p.offerCount}</TableCell>
+                          <TableCell>
+                            {p.minPrice != null ? (
+                              <span className="font-medium text-primary">${p.minPrice.toFixed(2)}</span>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title="Manage variants"
+                                onClick={() => handleOpenVariants(p.id)}
+                              >
+                                <Layers className="h-4 w-4 mr-1" />
+                                {expandedProductId === p.id ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEditProduct(p)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDeleteProduct(p.id, p.name)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {expandedProductId === p.id && (
+                          <TableRow key={`variants-${p.id}`} className="bg-muted/20">
+                            <TableCell colSpan={6} className="py-3 px-6">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium text-foreground flex items-center gap-2">
+                                    <Layers className="h-4 w-4 text-primary" /> Variants for {p.name}
+                                  </span>
+                                  <Button size="sm" variant="outline" onClick={() => handleAddVariant(p.id)}>
+                                    <Plus className="h-3 w-3 mr-1" /> Add Variant
+                                  </Button>
+                                </div>
+                                {variantsLoading ? (
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Loading variants…
+                                  </div>
+                                ) : variants.length === 0 ? (
+                                  <p className="text-sm text-muted-foreground">No variants yet. Add size/volume options above.</p>
+                                ) : (
+                                  <div className="flex flex-wrap gap-2">
+                                    {variants.map((v) => (
+                                      <div key={v.id} className="flex items-center gap-1 bg-card border border-border rounded-md px-2 py-1 text-sm">
+                                        <span className="font-medium">{v.name}</span>
+                                        {v.sku && <span className="text-muted-foreground text-xs">({v.sku})</span>}
+                                        <button
+                                          className="ml-1 text-destructive hover:text-destructive/80"
+                                          onClick={() => handleDeleteVariant(v)}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
                     ))
                   )}
                 </TableBody>
@@ -411,6 +516,42 @@ export default function AdminProducts() {
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               )}
               {productDialog.id ? "Save Changes" : "Create Product"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Variant Dialog */}
+      <Dialog open={variantDialogProductId !== null} onOpenChange={(open) => { if (!open) setVariantDialogProductId(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add Variant</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Variant Name <span className="text-destructive">*</span></Label>
+              <Input
+                value={variantForm.name}
+                onChange={(e) => setVariantForm({ ...variantForm, name: e.target.value })}
+                placeholder="e.g. Medium, 5ml, Large"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>SKU (optional)</Label>
+              <Input
+                value={variantForm.sku}
+                onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value })}
+                placeholder="e.g. GLV-M-100"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVariantDialogProductId(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleVariantSubmit} disabled={createVariant.isPending}>
+              {createVariant.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Add Variant
             </Button>
           </DialogFooter>
         </DialogContent>

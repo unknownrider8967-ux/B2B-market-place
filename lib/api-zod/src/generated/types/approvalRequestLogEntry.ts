@@ -8,7 +8,8 @@
 import type { ApprovalRequestLogEntryDecision } from './approvalRequestLogEntryDecision';
 
 export interface ApprovalRequestLogEntry {
-  step: number;
+  step: string;
+  userId: string;
   decision: ApprovalRequestLogEntryDecision;
   /** @nullable */
   note?: string | null;

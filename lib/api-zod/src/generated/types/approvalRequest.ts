@@ -5,6 +5,7 @@
  * API specification for the B2B medical supplies marketplace
  * OpenAPI spec version: 0.1.0
  */
+import type { ApprovalChainStep } from './approvalChainStep';
 import type { ApprovalRequestLogEntry } from './approvalRequestLogEntry';
 import type { ApprovalRequestStatus } from './approvalRequestStatus';
 
@@ -12,7 +13,8 @@ export interface ApprovalRequest {
   id: number;
   orderId: number;
   buyerCompanyId: number;
-  currentStep: number;
+  steps: ApprovalChainStep[];
+  currentStepIndex: number;
   status: ApprovalRequestStatus;
   log: ApprovalRequestLogEntry[];
   createdAt: Date;

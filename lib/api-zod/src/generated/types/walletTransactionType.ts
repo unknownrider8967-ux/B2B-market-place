@@ -10,7 +10,8 @@ export type WalletTransactionType = typeof WalletTransactionType[keyof typeof Wa
 
 
 export const WalletTransactionType = {
-  commission_earned: 'commission_earned',
+  sale: 'sale',
+  commission: 'commission',
   payout: 'payout',
   adjustment: 'adjustment',
 } as const;

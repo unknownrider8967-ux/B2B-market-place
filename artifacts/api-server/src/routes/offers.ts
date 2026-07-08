@@ -13,6 +13,8 @@ import {
   DeleteOfferParams,
   DeleteOfferResponse,
   GetVendorDashboardResponse,
+  BulkUploadOffersBody,
+  BulkUploadOffersResponse,
 } from "@workspace/api-zod";
 import { getOrCreateProfile } from "../lib/profile";
 import { createNotification } from "../lib/notifications";
@@ -81,6 +83,49 @@ router.post("/offers", async (req: Request, res: Response): Promise<void> => {
       priceTiers: parsed.data.priceTiers.map((t) => ({ ...t, price: t.price })),
     })
     .returning();
+
+  // Fire-and-forget: competition alert for other vendors with higher price on same product
+  (async () => {
+    try {
+      const newPrice = parsed.data.price;
+      const productId = parsed.data.productId;
+      const [product] = await db
+        .select({ name: productsTable.name })
+        .from(productsTable)
+        .where(eq(productsTable.id, productId))
+        .limit(1);
+      const productName = product?.name ?? `Product #${productId}`;
+
+      const competingOffers = await db
+        .select({
+          vendorCompanyId: vendorOffersTable.vendorCompanyId,
+          ownerId: companiesTable.ownerUserId,
+        })
+        .from(vendorOffersTable)
+        .innerJoin(companiesTable, eq(vendorOffersTable.vendorCompanyId, companiesTable.id))
+        .where(
+          and(
+            eq(vendorOffersTable.productId, productId),
+            eq(vendorOffersTable.status, "active"),
+            ne(vendorOffersTable.vendorCompanyId, vendorCompanyId),
+          ),
+        );
+
+      for (const competitor of competingOffers) {
+        if (competitor.ownerId) {
+          await createNotification({
+            userId: competitor.ownerId,
+            type: "price_undercut",
+            title: "A competitor undercut your price",
+            message: `A competitor just listed ${productName} at ${newPrice.toFixed(2)}. Review your pricing to stay competitive.`,
+            relatedId: productId,
+          });
+        }
+      }
+    } catch {
+      // Non-critical alerts
+    }
+  })();
 
   res.status(201).json(CreateOfferResponse.parse(created));
 });
@@ -186,8 +231,8 @@ router.patch("/offers/:id", async (req: Request, res: Response): Promise<void> =
           if (competitor.ownerId) {
             await createNotification({
               userId: competitor.ownerId,
-              type: "competition_alert",
-              title: "Competitor lowered their price",
+              type: "price_undercut",
+              title: "A competitor undercut your price",
               message: `A competitor just listed ${productName} at ${newPrice.toFixed(2)}. Review your pricing to stay competitive.`,
               relatedId: productId,
             });
@@ -299,6 +344,80 @@ router.get("/vendor/dashboard", async (req: Request, res: Response): Promise<voi
       openRfqs: Number(openRfqs),
     }),
   );
+});
+
+// POST /vendor/offers/bulk-upload
+router.post("/vendor/offers/bulk-upload", async (req: Request, res: Response): Promise<void> => {
+  const vendorCompanyId = await requireVendorCompany(req, res);
+  if (vendorCompanyId === null) return;
+
+  const parsed = BulkUploadOffersBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  let created = 0;
+  let updated = 0;
+  const errors: string[] = [];
+
+  for (const row of parsed.data.rows) {
+    try {
+      // Validate productId exists
+      const [product] = await db
+        .select({ id: productsTable.id })
+        .from(productsTable)
+        .where(eq(productsTable.id, row.productId))
+        .limit(1);
+
+      if (!product) {
+        errors.push(`Row productId=${row.productId}: product not found`);
+        continue;
+      }
+
+      // Check if an offer already exists for this vendor + product
+      const [existing] = await db
+        .select({ id: vendorOffersTable.id })
+        .from(vendorOffersTable)
+        .where(
+          and(
+            eq(vendorOffersTable.vendorCompanyId, vendorCompanyId),
+            eq(vendorOffersTable.productId, row.productId),
+          ),
+        )
+        .limit(1);
+
+      if (existing) {
+        await db
+          .update(vendorOffersTable)
+          .set({
+            price: row.price.toFixed(2),
+            moq: row.moq,
+            stock: row.stock,
+            deliveryDays: row.deliveryDays,
+            updatedAt: new Date(),
+          })
+          .where(eq(vendorOffersTable.id, existing.id));
+        updated++;
+      } else {
+        await db.insert(vendorOffersTable).values({
+          productId: row.productId,
+          vendorCompanyId,
+          price: row.price.toFixed(2),
+          moq: row.moq,
+          stock: row.stock,
+          deliveryDays: row.deliveryDays,
+          priceTiers: [],
+        });
+        created++;
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      errors.push(`Row productId=${row.productId}: ${msg}`);
+    }
+  }
+
+  res.json(BulkUploadOffersResponse.parse({ created, updated, errors }));
 });
 
 export default router;

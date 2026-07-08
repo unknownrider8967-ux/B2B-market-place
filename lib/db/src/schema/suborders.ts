@@ -11,6 +11,8 @@ export const vendorOrdersTable = pgTable("vendor_orders", {
   status: varchar("status", { length: 20 }).notNull().default("pending"), // pending | confirmed | processing | packed | shipped | delivered | completed | cancelled
   poStatus: varchar("po_status", { length: 20 }).notNull().default("pending"), // pending | accepted | rejected
   subtotal: numeric("subtotal", { precision: 12, scale: 2 }).notNull(),
+  shippingZoneId: integer("shipping_zone_id"),
+  shippingCost: numeric("shipping_cost", { precision: 12, scale: 2 }).notNull().default("0"),
   trackingNumber: varchar("tracking_number", { length: 60 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

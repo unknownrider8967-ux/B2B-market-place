@@ -17,6 +17,7 @@ import {
 } from "@workspace/api-zod";
 import { getOrCreateProfile } from "../lib/profile";
 import { createNotification } from "../lib/notifications";
+import { logAudit } from "../lib/audit";
 
 const router: IRouter = Router();
 
@@ -95,6 +96,15 @@ router.patch("/admin/companies/:id/status", async (req: Request, res: Response):
       relatedId: updated.id,
     });
   }
+
+  // Log the status change to audit trail
+  await logAudit({
+    userId: req.user!.id,
+    action: "company_status_change",
+    entityType: "company",
+    entityId: updated.id,
+    metadata: { status: body.data.status },
+  });
 
   res.json(UpdateCompanyStatusResponse.parse(updated));
 });

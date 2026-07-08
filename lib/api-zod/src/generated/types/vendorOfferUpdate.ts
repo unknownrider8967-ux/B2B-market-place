@@ -12,6 +12,8 @@ export interface VendorOfferUpdate {
   price?: number;
   moq?: number;
   stock?: number;
+  warehouseId?: number;
+  lowStockThreshold?: number;
   deliveryDays?: number;
   priceTiers?: PriceTier[];
   status?: VendorOfferUpdateStatus;
