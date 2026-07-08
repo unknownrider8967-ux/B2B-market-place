@@ -5,6 +5,7 @@
  * API specification for the B2B medical supplies marketplace
  * OpenAPI spec version: 0.1.0
  */
+import type { CompanyCreditTerm } from './companyCreditTerm';
 import type { CompanyStatus } from './companyStatus';
 import type { CompanyType } from './companyType';
 
@@ -26,4 +27,15 @@ export interface Company {
   status: CompanyStatus;
   ownerUserId: string;
   createdAt: Date;
+  verifiedBadge?: boolean;
+  /** @nullable */
+  minOrderValue?: number | null;
+  /** @nullable */
+  freeShippingThreshold?: number | null;
+  /** @nullable */
+  maxOrderQty?: number | null;
+  creditTerm?: CompanyCreditTerm;
+  /** @nullable */
+  creditLimit?: number | null;
+  outstandingBalance?: number;
 }

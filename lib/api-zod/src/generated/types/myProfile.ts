@@ -7,6 +7,7 @@
  */
 import type { AuthUser } from './authUser';
 import type { Company } from './company';
+import type { MyProfileAdminRole } from './myProfileAdminRole';
 import type { MyProfileRole } from './myProfileRole';
 
 export interface MyProfile {
@@ -16,4 +17,6 @@ export interface MyProfile {
   companyId: number | null;
   company: Company | null;
   user: AuthUser;
+  /** @nullable */
+  adminRole?: MyProfileAdminRole;
 }

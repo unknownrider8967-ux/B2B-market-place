@@ -5,6 +5,8 @@
  * API specification for the B2B medical supplies marketplace
  * OpenAPI spec version: 0.1.0
  */
+import type { ProductPerformanceStat } from './productPerformanceStat';
+import type { VendorPerformanceStat } from './vendorPerformanceStat';
 
 export interface AdminDashboardStats {
   totalRevenue: number;
@@ -14,4 +16,11 @@ export interface AdminDashboardStats {
   pendingApprovals: number;
   totalProducts: number;
   openRfqs: number;
+  pendingCompliance?: number;
+  pendingReturns?: number;
+  pendingApprovalRequests?: number;
+  pendingPayouts?: number;
+  lowStockOffers?: number;
+  topVendors?: VendorPerformanceStat[];
+  topProducts?: ProductPerformanceStat[];
 }

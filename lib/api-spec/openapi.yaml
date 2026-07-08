@@ -36,6 +36,22 @@ tags:
     description: In-app notification center
   - name: reviews
     description: Product and vendor ratings and reviews
+  - name: compliance
+    description: Medical compliance certificates (FDA/CE/ISO/GMP)
+  - name: returns
+    description: Returns, claims, and dispute management
+  - name: procurement
+    description: Multi-step procurement approval chains
+  - name: finance
+    description: Commission rules, vendor wallet/payouts, credit terms and invoices
+  - name: batches
+    description: Medical batch/lot and expiry tracking
+  - name: substitutes
+    description: Product substitution suggestions
+  - name: vendor-orders
+    description: Vendor sub-orders and purchase orders
+  - name: cms
+    description: Homepage banners, blog posts, and FAQs
 paths:
   /healthz:
     get:
@@ -251,6 +267,1103 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdminDashboardStats"
+  /admin/team:
+    get:
+      operationId: listAdminTeam
+      tags: [admin]
+      summary: List all admin users and their sub-roles
+      responses:
+        "200":
+          description: Admin team members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminTeamMember"
+  /admin/team/{userId}/role:
+    patch:
+      operationId: updateAdminRole
+      tags: [admin]
+      summary: Set an admin user's sub-role (super_admin only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAdminRoleBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTeamMember"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /admin/companies/{id}/verified-badge:
+    patch:
+      operationId: updateCompanyVerifiedBadge
+      tags: [admin]
+      summary: Grant or revoke a company's "Verified Supplier" badge
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verifiedBadge]
+              properties:
+                verifiedBadge:
+                  type: boolean
+      responses:
+        "200":
+          description: Updated company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+  /admin/companies/{id}/credit-terms:
+    patch:
+      operationId: updateCompanyCreditTerms
+      tags: [finance]
+      summary: Set a buyer company's credit term (Net 15/30/60) and credit limit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCreditTermsBody"
+      responses:
+        "200":
+          description: Updated company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+  /vendor/order-rules:
+    patch:
+      operationId: updateVendorOrderRules
+      tags: [companies]
+      summary: Configure minimum order value, free shipping threshold, and max order quantity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVendorOrderRulesBody"
+      responses:
+        "200":
+          description: Updated company
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+
+  /compliance/certificates:
+    post:
+      operationId: createComplianceCertificate
+      tags: [compliance]
+      summary: Upload a compliance certificate (FDA/CE/ISO/GMP) for review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateComplianceCertificateBody"
+      responses:
+        "201":
+          description: Certificate submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceCertificate"
+  /compliance/certificates/mine:
+    get:
+      operationId: listMyComplianceCertificates
+      tags: [compliance]
+      summary: List the current vendor's compliance certificates
+      responses:
+        "200":
+          description: Certificates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceCertificate"
+  /admin/compliance/certificates:
+    get:
+      operationId: listAdminComplianceCertificates
+      tags: [compliance]
+      summary: List all compliance certificates for admin review
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, approved, rejected, expired]
+      responses:
+        "200":
+          description: Certificates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ComplianceCertificateWithVendor"
+  /admin/compliance/certificates/{id}/status:
+    patch:
+      operationId: updateComplianceCertificateStatus
+      tags: [compliance]
+      summary: Approve or reject a compliance certificate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [approved, rejected]
+                adminNote:
+                  type: string
+      responses:
+        "200":
+          description: Updated certificate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceCertificate"
+
+  /returns:
+    post:
+      operationId: createReturn
+      tags: [returns]
+      summary: Submit a return, damage claim, or missing-item claim for an order item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReturnBody"
+      responses:
+        "201":
+          description: Return request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Return"
+  /returns/mine:
+    get:
+      operationId: listMyReturns
+      tags: [returns]
+      summary: List the current buyer's return requests
+      responses:
+        "200":
+          description: Returns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Return"
+  /returns/vendor:
+    get:
+      operationId: listVendorReturns
+      tags: [returns]
+      summary: List return requests for the current vendor's orders
+      responses:
+        "200":
+          description: Returns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Return"
+  /admin/returns:
+    get:
+      operationId: listAdminReturns
+      tags: [returns]
+      summary: List all return/dispute requests for admin mediation
+      responses:
+        "200":
+          description: Returns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Return"
+  /returns/{id}/status:
+    patch:
+      operationId: updateReturnStatus
+      tags: [returns]
+      summary: Update a return's status (vendor or admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [under_review, approved, rejected, refunded]
+                adminNote:
+                  type: string
+      responses:
+        "200":
+          description: Updated return
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Return"
+
+  /procurement/approval-chain:
+    get:
+      operationId: getApprovalChain
+      tags: [procurement]
+      summary: Get the current buyer company's procurement approval chain
+      responses:
+        "200":
+          description: Approval chain (null if none configured)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ApprovalChain"
+                  - type: "null"
+    put:
+      operationId: setApprovalChain
+      tags: [procurement]
+      summary: Configure the buyer company's multi-step approval chain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetApprovalChainBody"
+      responses:
+        "200":
+          description: Saved approval chain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalChain"
+  /procurement/approvals:
+    get:
+      operationId: listApprovalRequests
+      tags: [procurement]
+      summary: List approval requests for the current buyer company
+      responses:
+        "200":
+          description: Approval requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApprovalRequest"
+  /procurement/approvals/{id}/decision:
+    post:
+      operationId: decideApprovalRequest
+      tags: [procurement]
+      summary: Approve or reject the current step of an approval request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision:
+                  type: string
+                  enum: [approved, rejected]
+                note:
+                  type: string
+      responses:
+        "200":
+          description: Updated approval request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApprovalRequest"
+
+  /admin/commission-rules:
+    get:
+      operationId: listCommissionRules
+      tags: [finance]
+      summary: List commission rules
+      responses:
+        "200":
+          description: Commission rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommissionRule"
+    post:
+      operationId: createCommissionRule
+      tags: [finance]
+      summary: Create a commission rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommissionRuleInput"
+      responses:
+        "201":
+          description: Created rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommissionRule"
+  /admin/commission-rules/{id}:
+    patch:
+      operationId: updateCommissionRule
+      tags: [finance]
+      summary: Update a commission rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommissionRuleInput"
+      responses:
+        "200":
+          description: Updated rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommissionRule"
+    delete:
+      operationId: deleteCommissionRule
+      tags: [finance]
+      summary: Delete a commission rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /wallet/mine:
+    get:
+      operationId: getMyWallet
+      tags: [finance]
+      summary: Get the current vendor's wallet balance and recent transactions
+      responses:
+        "200":
+          description: Wallet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletSummary"
+  /wallet/payout-requests:
+    post:
+      operationId: createPayoutRequest
+      tags: [finance]
+      summary: Request a payout from available balance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePayoutRequestBody"
+      responses:
+        "201":
+          description: Payout request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutRequest"
+  /wallet/payout-requests/mine:
+    get:
+      operationId: listMyPayoutRequests
+      tags: [finance]
+      summary: List the current vendor's payout requests
+      responses:
+        "200":
+          description: Payout requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PayoutRequest"
+  /admin/payout-requests:
+    get:
+      operationId: listAdminPayoutRequests
+      tags: [finance]
+      summary: List all vendor payout requests
+      responses:
+        "200":
+          description: Payout requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PayoutRequestWithVendor"
+  /admin/payout-requests/{id}/status:
+    patch:
+      operationId: updatePayoutRequestStatus
+      tags: [finance]
+      summary: Approve, reject, or mark a payout request as paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [approved, rejected, paid]
+      responses:
+        "200":
+          description: Updated payout request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutRequest"
+
+  /invoices/mine:
+    get:
+      operationId: listMyInvoices
+      tags: [finance]
+      summary: List the current buyer company's invoices (credit-term orders)
+      responses:
+        "200":
+          description: Invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+  /admin/invoices:
+    get:
+      operationId: listAdminInvoices
+      tags: [finance]
+      summary: List all invoices
+      responses:
+        "200":
+          description: Invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvoiceWithBuyer"
+  /admin/invoices/{id}/status:
+    patch:
+      operationId: updateInvoiceStatus
+      tags: [finance]
+      summary: Mark an invoice as paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [paid, overdue]
+      responses:
+        "200":
+          description: Updated invoice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /offers/{id}/batches:
+    get:
+      operationId: listOfferBatches
+      tags: [batches]
+      summary: List batch/lot records for a vendor offer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Batches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductBatch"
+    post:
+      operationId: createOfferBatch
+      tags: [batches]
+      summary: Record a new batch/lot for a vendor offer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBatchBody"
+      responses:
+        "201":
+          description: Batch created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductBatch"
+  /vendor/batches/expiring:
+    get:
+      operationId: listVendorExpiringBatches
+      tags: [batches]
+      summary: Near-expiry / expired batch report for the current vendor
+      parameters:
+        - name: withinDays
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Batches nearing expiry, ordered soonest-first (FEFO)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductBatchWithProduct"
+  /admin/batches/expiring:
+    get:
+      operationId: listAdminExpiringBatches
+      tags: [batches]
+      summary: Marketplace-wide near-expiry / expired batch report (for recall management)
+      parameters:
+        - name: withinDays
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 30
+      responses:
+        "200":
+          description: Batches nearing expiry across all vendors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductBatchWithProduct"
+
+  /products/{id}/substitutes:
+    get:
+      operationId: listProductSubstitutes
+      tags: [substitutes]
+      summary: List suggested alternative products
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Substitutes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductSubstituteWithProduct"
+    post:
+      operationId: createProductSubstitute
+      tags: [substitutes]
+      summary: Suggest an alternative product (vendor)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductSubstituteBody"
+      responses:
+        "201":
+          description: Substitute suggestion created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductSubstitute"
+
+  /vendor-orders/mine:
+    get:
+      operationId: listMyVendorOrders
+      tags: [vendor-orders]
+      summary: List the current vendor's sub-orders (one per order, doubles as a purchase order)
+      responses:
+        "200":
+          description: Vendor sub-orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VendorOrderWithItems"
+  /vendor-orders/{id}/po-status:
+    patch:
+      operationId: updateVendorOrderPoStatus
+      tags: [vendor-orders]
+      summary: Accept or reject a purchase order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [poStatus]
+              properties:
+                poStatus:
+                  type: string
+                  enum: [accepted, rejected]
+      responses:
+        "200":
+          description: Updated vendor order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorOrder"
+  /vendor-orders/{id}/status:
+    patch:
+      operationId: updateVendorOrderStatus
+      tags: [vendor-orders]
+      summary: Update a vendor sub-order's fulfillment status and tracking number
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [confirmed, processing, packed, shipped, delivered, completed, cancelled]
+                trackingNumber:
+                  type: string
+      responses:
+        "200":
+          description: Updated vendor order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorOrder"
+  /orders/{id}/vendor-orders:
+    get:
+      operationId: listOrderVendorOrders
+      tags: [vendor-orders]
+      summary: List the vendor sub-orders / purchase orders that make up a parent order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Vendor sub-orders for this order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VendorOrder"
+
+  /cms/banners:
+    get:
+      operationId: listBanners
+      tags: [cms]
+      summary: List active homepage banners (public)
+      responses:
+        "200":
+          description: Banners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Banner"
+  /admin/cms/banners:
+    get:
+      operationId: listAdminBanners
+      tags: [cms]
+      summary: List all banners
+      responses:
+        "200":
+          description: Banners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Banner"
+    post:
+      operationId: createBanner
+      tags: [cms]
+      summary: Create a banner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BannerInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+  /admin/cms/banners/{id}:
+    patch:
+      operationId: updateBanner
+      tags: [cms]
+      summary: Update a banner
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BannerInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Banner"
+    delete:
+      operationId: deleteBanner
+      tags: [cms]
+      summary: Delete a banner
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /cms/blog:
+    get:
+      operationId: listBlogPosts
+      tags: [cms]
+      summary: List published blog posts (public)
+      responses:
+        "200":
+          description: Blog posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlogPost"
+  /cms/blog/{slug}:
+    get:
+      operationId: getBlogPost
+      tags: [cms]
+      summary: Get a published blog post by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Blog post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /admin/cms/blog:
+    get:
+      operationId: listAdminBlogPosts
+      tags: [cms]
+      summary: List all blog posts (including drafts)
+      responses:
+        "200":
+          description: Blog posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlogPost"
+    post:
+      operationId: createBlogPost
+      tags: [cms]
+      summary: Create a blog post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogPostInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+  /admin/cms/blog/{id}:
+    patch:
+      operationId: updateBlogPost
+      tags: [cms]
+      summary: Update a blog post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlogPostInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+    delete:
+      operationId: deleteBlogPost
+      tags: [cms]
+      summary: Delete a blog post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /cms/faqs:
+    get:
+      operationId: listFaqs
+      tags: [cms]
+      summary: List active FAQs (public)
+      responses:
+        "200":
+          description: FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Faq"
+  /admin/cms/faqs:
+    get:
+      operationId: listAdminFaqs
+      tags: [cms]
+      summary: List all FAQs
+      responses:
+        "200":
+          description: FAQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Faq"
+    post:
+      operationId: createFaq
+      tags: [cms]
+      summary: Create an FAQ entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaqInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Faq"
+  /admin/cms/faqs/{id}:
+    patch:
+      operationId: updateFaq
+      tags: [cms]
+      summary: Update an FAQ entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaqInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Faq"
+    delete:
+      operationId: deleteFaq
+      tags: [cms]
+      summary: Delete an FAQ entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
 
   /categories:
     get:
@@ -1083,6 +2196,9 @@ components:
             - type: "null"
         user:
           $ref: "#/components/schemas/AuthUser"
+        adminRole:
+          type: [string, "null"]
+          enum: [super_admin, operations_manager, finance_manager, product_manager, customer_support, procurement_manager, null]
 
     OnboardInput:
       type: object
@@ -1125,6 +2241,21 @@ components:
         createdAt:
           type: string
           format: date-time
+        verifiedBadge:
+          type: boolean
+        minOrderValue:
+          type: [number, "null"]
+        freeShippingThreshold:
+          type: [number, "null"]
+        maxOrderQty:
+          type: [integer, "null"]
+        creditTerm:
+          type: string
+          enum: [none, net15, net30, net60]
+        creditLimit:
+          type: [number, "null"]
+        outstandingBalance:
+          type: number
     CompanyInput:
       type: object
       required: [name, type, subtype]
@@ -1174,6 +2305,49 @@ components:
           type: integer
         openRfqs:
           type: integer
+        pendingCompliance:
+          type: integer
+        pendingReturns:
+          type: integer
+        pendingApprovalRequests:
+          type: integer
+        pendingPayouts:
+          type: integer
+        lowStockOffers:
+          type: integer
+        topVendors:
+          type: array
+          items:
+            $ref: "#/components/schemas/VendorPerformanceStat"
+        topProducts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductPerformanceStat"
+
+    VendorPerformanceStat:
+      type: object
+      required: [vendorCompanyId, vendorName, totalOrders, revenue]
+      properties:
+        vendorCompanyId:
+          type: integer
+        vendorName:
+          type: string
+        totalOrders:
+          type: integer
+        revenue:
+          type: number
+    ProductPerformanceStat:
+      type: object
+      required: [productId, productName, unitsSold, revenue]
+      properties:
+        productId:
+          type: integer
+        productName:
+          type: string
+        unitsSold:
+          type: integer
+        revenue:
+          type: number
 
     VendorDashboardStats:
       type: object
@@ -1735,3 +2909,580 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    AdminTeamMember:
+      type: object
+      required: [userId, role, adminRole]
+      properties:
+        userId:
+          type: string
+        role:
+          type: string
+        adminRole:
+          type: [string, "null"]
+          enum: [super_admin, operations_manager, finance_manager, product_manager, customer_support, procurement_manager, null]
+        email:
+          type: [string, "null"]
+        firstName:
+          type: [string, "null"]
+        lastName:
+          type: [string, "null"]
+    UpdateAdminRoleBody:
+      type: object
+      required: [adminRole]
+      properties:
+        adminRole:
+          type: [string, "null"]
+          enum: [super_admin, operations_manager, finance_manager, product_manager, customer_support, procurement_manager, null]
+
+    UpdateCreditTermsBody:
+      type: object
+      properties:
+        creditTerm:
+          type: string
+          enum: [none, net15, net30, net60]
+        creditLimit:
+          type: number
+    UpdateVendorOrderRulesBody:
+      type: object
+      properties:
+        minOrderValue:
+          type: [number, "null"]
+        freeShippingThreshold:
+          type: [number, "null"]
+        maxOrderQty:
+          type: [integer, "null"]
+
+    ComplianceCertificate:
+      type: object
+      required: [id, companyId, productId, certType, certNumber, status, issuedAt, expiresAt, createdAt]
+      properties:
+        id:
+          type: integer
+        companyId:
+          type: integer
+        productId:
+          type: [integer, "null"]
+        certType:
+          type: string
+          enum: [fda, ce, iso, gmp]
+        certNumber:
+          type: string
+        fileUrl:
+          type: [string, "null"]
+        status:
+          type: string
+          enum: [pending, approved, rejected, expired]
+        adminNote:
+          type: [string, "null"]
+        issuedAt:
+          type: [string, "null"]
+          format: date-time
+        expiresAt:
+          type: [string, "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    ComplianceCertificateWithVendor:
+      allOf:
+        - $ref: "#/components/schemas/ComplianceCertificate"
+        - type: object
+          required: [companyName]
+          properties:
+            companyName:
+              type: string
+    CreateComplianceCertificateBody:
+      type: object
+      required: [certType, certNumber]
+      properties:
+        productId:
+          type: integer
+        certType:
+          type: string
+          enum: [fda, ce, iso, gmp]
+        certNumber:
+          type: string
+        fileUrl:
+          type: string
+        issuedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+
+    Return:
+      type: object
+      required: [id, orderId, orderItemId, buyerUserId, vendorCompanyId, type, status, createdAt]
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        orderItemId:
+          type: integer
+        buyerUserId:
+          type: string
+        vendorCompanyId:
+          type: integer
+        type:
+          type: string
+          enum: [damaged, missing, wrong_item, other]
+        status:
+          type: string
+          enum: [requested, under_review, approved, rejected, refunded]
+        reason:
+          type: [string, "null"]
+        adminNote:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+    CreateReturnBody:
+      type: object
+      required: [orderItemId, type, reason]
+      properties:
+        orderItemId:
+          type: integer
+        type:
+          type: string
+          enum: [damaged, missing, wrong_item, other]
+        reason:
+          type: string
+          maxLength: 2000
+
+    ApprovalChainStep:
+      type: object
+      required: [order, role]
+      properties:
+        order:
+          type: integer
+        role:
+          type: string
+          enum: [department_manager, procurement_manager, finance_manager]
+    ApprovalChain:
+      type: object
+      required: [id, buyerCompanyId, steps, createdAt]
+      properties:
+        id:
+          type: integer
+        buyerCompanyId:
+          type: integer
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApprovalChainStep"
+        createdAt:
+          type: string
+          format: date-time
+    SetApprovalChainBody:
+      type: object
+      required: [steps]
+      properties:
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApprovalChainStep"
+    ApprovalRequestLogEntry:
+      type: object
+      required: [step, userId, decision, decidedAt]
+      properties:
+        step:
+          type: string
+        userId:
+          type: string
+        decision:
+          type: string
+          enum: [approved, rejected]
+        note:
+          type: [string, "null"]
+        decidedAt:
+          type: string
+          format: date-time
+    ApprovalRequest:
+      type: object
+      required: [id, orderId, buyerCompanyId, steps, currentStepIndex, status, log, createdAt]
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        buyerCompanyId:
+          type: integer
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApprovalChainStep"
+        currentStepIndex:
+          type: integer
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        log:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApprovalRequestLogEntry"
+        createdAt:
+          type: string
+          format: date-time
+
+    CommissionRule:
+      type: object
+      required: [id, percentage, createdAt]
+      properties:
+        id:
+          type: integer
+        vendorSubtype:
+          type: [string, "null"]
+        percentage:
+          type: number
+        isDefault:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    CommissionRuleInput:
+      type: object
+      required: [percentage]
+      properties:
+        vendorSubtype:
+          type: [string, "null"]
+        percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        isDefault:
+          type: boolean
+
+    WalletTransaction:
+      type: object
+      required: [id, walletId, type, amount, description, createdAt]
+      properties:
+        id:
+          type: integer
+        walletId:
+          type: integer
+        type:
+          type: string
+          enum: [sale, commission, payout, adjustment]
+        amount:
+          type: number
+        description:
+          type: [string, "null"]
+        relatedOrderId:
+          type: [integer, "null"]
+        createdAt:
+          type: string
+          format: date-time
+    WalletSummary:
+      type: object
+      required: [id, vendorCompanyId, availableBalance, pendingBalance, transactions]
+      properties:
+        id:
+          type: integer
+        vendorCompanyId:
+          type: integer
+        availableBalance:
+          type: number
+        pendingBalance:
+          type: number
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/WalletTransaction"
+    PayoutRequest:
+      type: object
+      required: [id, vendorCompanyId, amount, status, createdAt]
+      properties:
+        id:
+          type: integer
+        vendorCompanyId:
+          type: integer
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [pending, approved, rejected, paid]
+        createdAt:
+          type: string
+          format: date-time
+    PayoutRequestWithVendor:
+      allOf:
+        - $ref: "#/components/schemas/PayoutRequest"
+        - type: object
+          required: [vendorName]
+          properties:
+            vendorName:
+              type: string
+    CreatePayoutRequestBody:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          minimum: 0.01
+
+    Invoice:
+      type: object
+      required: [id, orderId, buyerCompanyId, amount, dueDate, status, createdAt]
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        buyerCompanyId:
+          type: integer
+        amount:
+          type: number
+        dueDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [unpaid, paid, overdue]
+        createdAt:
+          type: string
+          format: date-time
+    InvoiceWithBuyer:
+      allOf:
+        - $ref: "#/components/schemas/Invoice"
+        - type: object
+          required: [buyerCompanyName]
+          properties:
+            buyerCompanyName:
+              type: string
+
+    ProductBatch:
+      type: object
+      required: [id, vendorOfferId, batchNumber, quantity, expiryDate, createdAt]
+      properties:
+        id:
+          type: integer
+        vendorOfferId:
+          type: integer
+        batchNumber:
+          type: string
+        lotNumber:
+          type: [string, "null"]
+        quantity:
+          type: integer
+        manufactureDate:
+          type: [string, "null"]
+          format: date-time
+        expiryDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    ProductBatchWithProduct:
+      allOf:
+        - $ref: "#/components/schemas/ProductBatch"
+        - type: object
+          required: [productName, vendorCompanyId, vendorName]
+          properties:
+            productName:
+              type: string
+            vendorCompanyId:
+              type: integer
+            vendorName:
+              type: string
+    CreateProductBatchBody:
+      type: object
+      required: [batchNumber, quantity, expiryDate]
+      properties:
+        batchNumber:
+          type: string
+        lotNumber:
+          type: string
+        quantity:
+          type: integer
+          minimum: 0
+        manufactureDate:
+          type: string
+          format: date-time
+        expiryDate:
+          type: string
+          format: date-time
+
+    ProductSubstitute:
+      type: object
+      required: [id, productId, substituteProductId, createdAt]
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        substituteProductId:
+          type: integer
+        suggestedByVendorId:
+          type: [integer, "null"]
+        note:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+    ProductSubstituteWithProduct:
+      allOf:
+        - $ref: "#/components/schemas/ProductSubstitute"
+        - type: object
+          required: [substituteName, substituteUnit]
+          properties:
+            substituteName:
+              type: string
+            substituteUnit:
+              type: string
+    CreateProductSubstituteBody:
+      type: object
+      required: [substituteProductId]
+      properties:
+        substituteProductId:
+          type: integer
+        note:
+          type: string
+          maxLength: 500
+
+    VendorOrder:
+      type: object
+      required: [id, orderId, vendorCompanyId, poNumber, poStatus, status, subtotal, createdAt]
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        vendorCompanyId:
+          type: integer
+        poNumber:
+          type: string
+        poStatus:
+          type: string
+          enum: [pending, accepted, rejected]
+        status:
+          type: string
+          enum: [confirmed, processing, packed, shipped, delivered, completed, cancelled]
+        trackingNumber:
+          type: [string, "null"]
+        subtotal:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    VendorOrderWithItems:
+      allOf:
+        - $ref: "#/components/schemas/VendorOrder"
+        - type: object
+          required: [items, buyerCompanyName]
+          properties:
+            buyerCompanyName:
+              type: string
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderItemDetail"
+
+    Banner:
+      type: object
+      required: [id, title, isActive, sortOrder, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        subtitle:
+          type: [string, "null"]
+        imageUrl:
+          type: [string, "null"]
+        linkUrl:
+          type: [string, "null"]
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    BannerInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        subtitle:
+          type: string
+        imageUrl:
+          type: string
+        linkUrl:
+          type: string
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    BlogPost:
+      type: object
+      required: [id, slug, title, content, isPublished, createdAt]
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: [string, "null"]
+        content:
+          type: string
+        coverImageUrl:
+          type: [string, "null"]
+        isPublished:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    BlogPostInput:
+      type: object
+      required: [slug, title, content]
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        coverImageUrl:
+          type: string
+        isPublished:
+          type: boolean
+
+    Faq:
+      type: object
+      required: [id, question, answer, isActive, sortOrder, createdAt]
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        answer:
+          type: string
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    FaqInput:
+      type: object
+      required: [question, answer]
+      properties:
+        question:
+          type: string
+        answer:
+          type: string
+        isActive:
+          type: boolean
+        sortOrder:
+          type: integer

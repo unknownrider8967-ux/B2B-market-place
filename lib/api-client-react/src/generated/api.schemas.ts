@@ -42,6 +42,21 @@ export const MyProfileRole = {
   admin: 'admin',
 } as const;
 
+/**
+ * @nullable
+ */
+export type MyProfileAdminRole = typeof MyProfileAdminRole[keyof typeof MyProfileAdminRole] | null;
+
+
+export const MyProfileAdminRole = {
+  super_admin: 'super_admin',
+  operations_manager: 'operations_manager',
+  finance_manager: 'finance_manager',
+  product_manager: 'product_manager',
+  customer_support: 'customer_support',
+  procurement_manager: 'procurement_manager',
+} as const;
+
 export type CompanyType = typeof CompanyType[keyof typeof CompanyType];
 
 
@@ -58,6 +73,16 @@ export const CompanyStatus = {
   approved: 'approved',
   rejected: 'rejected',
   suspended: 'suspended',
+} as const;
+
+export type CompanyCreditTerm = typeof CompanyCreditTerm[keyof typeof CompanyCreditTerm];
+
+
+export const CompanyCreditTerm = {
+  none: 'none',
+  net15: 'net15',
+  net30: 'net30',
+  net60: 'net60',
 } as const;
 
 export interface Company {
@@ -78,6 +103,17 @@ export interface Company {
   status: CompanyStatus;
   ownerUserId: string;
   createdAt: string;
+  verifiedBadge?: boolean;
+  /** @nullable */
+  minOrderValue?: number | null;
+  /** @nullable */
+  freeShippingThreshold?: number | null;
+  /** @nullable */
+  maxOrderQty?: number | null;
+  creditTerm?: CompanyCreditTerm;
+  /** @nullable */
+  creditLimit?: number | null;
+  outstandingBalance?: number;
 }
 
 export interface MyProfile {
@@ -87,6 +123,8 @@ export interface MyProfile {
   companyId: number | null;
   company: Company | null;
   user: AuthUser;
+  /** @nullable */
+  adminRole?: MyProfileAdminRole;
 }
 
 export type OnboardInputRole = typeof OnboardInputRole[keyof typeof OnboardInputRole];
@@ -137,6 +175,20 @@ export interface CompanyStatusUpdate {
   status: CompanyStatusUpdateStatus;
 }
 
+export interface VendorPerformanceStat {
+  vendorCompanyId: number;
+  vendorName: string;
+  totalOrders: number;
+  revenue: number;
+}
+
+export interface ProductPerformanceStat {
+  productId: number;
+  productName: string;
+  unitsSold: number;
+  revenue: number;
+}
+
 export interface AdminDashboardStats {
   totalRevenue: number;
   totalOrders: number;
@@ -145,6 +197,13 @@ export interface AdminDashboardStats {
   pendingApprovals: number;
   totalProducts: number;
   openRfqs: number;
+  pendingCompliance?: number;
+  pendingReturns?: number;
+  pendingApprovalRequests?: number;
+  pendingPayouts?: number;
+  lowStockOffers?: number;
+  topVendors?: VendorPerformanceStat[];
+  topProducts?: ProductPerformanceStat[];
 }
 
 export interface VendorDashboardStats {
@@ -513,6 +572,500 @@ export interface Notification {
 }
 
 /**
+ * @nullable
+ */
+export type AdminTeamMemberAdminRole = typeof AdminTeamMemberAdminRole[keyof typeof AdminTeamMemberAdminRole] | null;
+
+
+export const AdminTeamMemberAdminRole = {
+  super_admin: 'super_admin',
+  operations_manager: 'operations_manager',
+  finance_manager: 'finance_manager',
+  product_manager: 'product_manager',
+  customer_support: 'customer_support',
+  procurement_manager: 'procurement_manager',
+} as const;
+
+export interface AdminTeamMember {
+  userId: string;
+  role: string;
+  /** @nullable */
+  adminRole: AdminTeamMemberAdminRole;
+  /** @nullable */
+  email?: string | null;
+  /** @nullable */
+  firstName?: string | null;
+  /** @nullable */
+  lastName?: string | null;
+}
+
+/**
+ * @nullable
+ */
+export type UpdateAdminRoleBodyAdminRole = typeof UpdateAdminRoleBodyAdminRole[keyof typeof UpdateAdminRoleBodyAdminRole] | null;
+
+
+export const UpdateAdminRoleBodyAdminRole = {
+  super_admin: 'super_admin',
+  operations_manager: 'operations_manager',
+  finance_manager: 'finance_manager',
+  product_manager: 'product_manager',
+  customer_support: 'customer_support',
+  procurement_manager: 'procurement_manager',
+} as const;
+
+export interface UpdateAdminRoleBody {
+  /** @nullable */
+  adminRole: UpdateAdminRoleBodyAdminRole;
+}
+
+export type UpdateCreditTermsBodyCreditTerm = typeof UpdateCreditTermsBodyCreditTerm[keyof typeof UpdateCreditTermsBodyCreditTerm];
+
+
+export const UpdateCreditTermsBodyCreditTerm = {
+  none: 'none',
+  net15: 'net15',
+  net30: 'net30',
+  net60: 'net60',
+} as const;
+
+export interface UpdateCreditTermsBody {
+  creditTerm?: UpdateCreditTermsBodyCreditTerm;
+  creditLimit?: number;
+}
+
+export interface UpdateVendorOrderRulesBody {
+  /** @nullable */
+  minOrderValue?: number | null;
+  /** @nullable */
+  freeShippingThreshold?: number | null;
+  /** @nullable */
+  maxOrderQty?: number | null;
+}
+
+export type ComplianceCertificateCertType = typeof ComplianceCertificateCertType[keyof typeof ComplianceCertificateCertType];
+
+
+export const ComplianceCertificateCertType = {
+  fda: 'fda',
+  ce: 'ce',
+  iso: 'iso',
+  gmp: 'gmp',
+} as const;
+
+export type ComplianceCertificateStatus = typeof ComplianceCertificateStatus[keyof typeof ComplianceCertificateStatus];
+
+
+export const ComplianceCertificateStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  expired: 'expired',
+} as const;
+
+export interface ComplianceCertificate {
+  id: number;
+  companyId: number;
+  /** @nullable */
+  productId: number | null;
+  certType: ComplianceCertificateCertType;
+  certNumber: string;
+  /** @nullable */
+  fileUrl?: string | null;
+  status: ComplianceCertificateStatus;
+  /** @nullable */
+  adminNote?: string | null;
+  /** @nullable */
+  issuedAt: string | null;
+  /** @nullable */
+  expiresAt: string | null;
+  createdAt: string;
+}
+
+export type ComplianceCertificateWithVendor = ComplianceCertificate & {
+  companyName: string;
+};
+
+export type CreateComplianceCertificateBodyCertType = typeof CreateComplianceCertificateBodyCertType[keyof typeof CreateComplianceCertificateBodyCertType];
+
+
+export const CreateComplianceCertificateBodyCertType = {
+  fda: 'fda',
+  ce: 'ce',
+  iso: 'iso',
+  gmp: 'gmp',
+} as const;
+
+export interface CreateComplianceCertificateBody {
+  productId?: number;
+  certType: CreateComplianceCertificateBodyCertType;
+  certNumber: string;
+  fileUrl?: string;
+  issuedAt?: string;
+  expiresAt?: string;
+}
+
+export type ReturnType = typeof ReturnType[keyof typeof ReturnType];
+
+
+export const ReturnType = {
+  damaged: 'damaged',
+  missing: 'missing',
+  wrong_item: 'wrong_item',
+  other: 'other',
+} as const;
+
+export type ReturnStatus = typeof ReturnStatus[keyof typeof ReturnStatus];
+
+
+export const ReturnStatus = {
+  requested: 'requested',
+  under_review: 'under_review',
+  approved: 'approved',
+  rejected: 'rejected',
+  refunded: 'refunded',
+} as const;
+
+export interface Return {
+  id: number;
+  orderId: number;
+  orderItemId: number;
+  buyerUserId: string;
+  vendorCompanyId: number;
+  type: ReturnType;
+  status: ReturnStatus;
+  /** @nullable */
+  reason?: string | null;
+  /** @nullable */
+  adminNote?: string | null;
+  createdAt: string;
+}
+
+export type CreateReturnBodyType = typeof CreateReturnBodyType[keyof typeof CreateReturnBodyType];
+
+
+export const CreateReturnBodyType = {
+  damaged: 'damaged',
+  missing: 'missing',
+  wrong_item: 'wrong_item',
+  other: 'other',
+} as const;
+
+export interface CreateReturnBody {
+  orderItemId: number;
+  type: CreateReturnBodyType;
+  /** @maxLength 2000 */
+  reason: string;
+}
+
+export interface ApprovalChainStep {
+  order: number;
+  /** The role/title of the person who must approve at this step (e.g. "Department Head", "Procurement Manager") */
+  approverRole: string;
+  /**
+     * This step only applies to orders at or above this amount
+     * @nullable
+     */
+  minAmount?: number | null;
+}
+
+export interface ApprovalChain {
+  id: number;
+  buyerCompanyId: number;
+  steps: ApprovalChainStep[];
+  createdAt: string;
+}
+
+export interface SetApprovalChainBody {
+  steps: ApprovalChainStep[];
+}
+
+export type ApprovalRequestLogEntryDecision = typeof ApprovalRequestLogEntryDecision[keyof typeof ApprovalRequestLogEntryDecision];
+
+
+export const ApprovalRequestLogEntryDecision = {
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface ApprovalRequestLogEntry {
+  step: number;
+  decision: ApprovalRequestLogEntryDecision;
+  /** @nullable */
+  note?: string | null;
+  decidedAt: string;
+}
+
+export type ApprovalRequestStatus = typeof ApprovalRequestStatus[keyof typeof ApprovalRequestStatus];
+
+
+export const ApprovalRequestStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface ApprovalRequest {
+  id: number;
+  orderId: number;
+  buyerCompanyId: number;
+  currentStep: number;
+  status: ApprovalRequestStatus;
+  log: ApprovalRequestLogEntry[];
+  createdAt: string;
+}
+
+export interface CommissionRule {
+  id: number;
+  /** @nullable */
+  vendorSubtype?: string | null;
+  percentage: number;
+  isDefault?: boolean;
+  createdAt: string;
+}
+
+export interface CommissionRuleInput {
+  /** @nullable */
+  vendorSubtype?: string | null;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  percentage: number;
+  isDefault?: boolean;
+}
+
+export type WalletTransactionType = typeof WalletTransactionType[keyof typeof WalletTransactionType];
+
+
+export const WalletTransactionType = {
+  commission_earned: 'commission_earned',
+  payout: 'payout',
+  adjustment: 'adjustment',
+} as const;
+
+export interface WalletTransaction {
+  id: number;
+  walletId: number;
+  type: WalletTransactionType;
+  amount: number;
+  /** @nullable */
+  description: string | null;
+  /** @nullable */
+  relatedOrderId?: number | null;
+  createdAt: string;
+}
+
+export interface WalletSummary {
+  id: number;
+  vendorCompanyId: number;
+  availableBalance: number;
+  pendingBalance: number;
+  transactions: WalletTransaction[];
+}
+
+export type PayoutRequestStatus = typeof PayoutRequestStatus[keyof typeof PayoutRequestStatus];
+
+
+export const PayoutRequestStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  paid: 'paid',
+} as const;
+
+export interface PayoutRequest {
+  id: number;
+  vendorCompanyId: number;
+  amount: number;
+  status: PayoutRequestStatus;
+  createdAt: string;
+}
+
+export type PayoutRequestWithVendor = PayoutRequest & {
+  vendorName: string;
+};
+
+export interface CreatePayoutRequestBody {
+  /** @minimum 0.01 */
+  amount: number;
+}
+
+export type InvoiceStatus = typeof InvoiceStatus[keyof typeof InvoiceStatus];
+
+
+export const InvoiceStatus = {
+  unpaid: 'unpaid',
+  paid: 'paid',
+  overdue: 'overdue',
+} as const;
+
+export interface Invoice {
+  id: number;
+  orderId: number;
+  buyerCompanyId: number;
+  amount: number;
+  dueDate: string;
+  status: InvoiceStatus;
+  createdAt: string;
+}
+
+export type InvoiceWithBuyer = Invoice & {
+  buyerCompanyName: string;
+};
+
+export interface ProductBatch {
+  id: number;
+  vendorOfferId: number;
+  batchNumber: string;
+  /** @nullable */
+  lotNumber?: string | null;
+  quantity: number;
+  /** @nullable */
+  manufactureDate?: string | null;
+  expiryDate: string;
+  createdAt: string;
+}
+
+export type ProductBatchWithProduct = ProductBatch & {
+  productName: string;
+  vendorCompanyId: number;
+  vendorName: string;
+};
+
+export interface CreateProductBatchBody {
+  batchNumber: string;
+  lotNumber?: string;
+  /** @minimum 0 */
+  quantity: number;
+  manufactureDate?: string;
+  expiryDate: string;
+}
+
+export interface ProductSubstitute {
+  id: number;
+  productId: number;
+  substituteProductId: number;
+  /** @nullable */
+  suggestedByVendorId?: number | null;
+  /** @nullable */
+  note?: string | null;
+  createdAt: string;
+}
+
+export type ProductSubstituteWithProduct = ProductSubstitute & {
+  substituteName: string;
+  substituteUnit: string;
+};
+
+export interface CreateProductSubstituteBody {
+  substituteProductId: number;
+  /** @maxLength 500 */
+  note?: string;
+}
+
+export type VendorOrderPoStatus = typeof VendorOrderPoStatus[keyof typeof VendorOrderPoStatus];
+
+
+export const VendorOrderPoStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  rejected: 'rejected',
+} as const;
+
+export type VendorOrderStatus = typeof VendorOrderStatus[keyof typeof VendorOrderStatus];
+
+
+export const VendorOrderStatus = {
+  confirmed: 'confirmed',
+  processing: 'processing',
+  packed: 'packed',
+  shipped: 'shipped',
+  delivered: 'delivered',
+  completed: 'completed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface VendorOrder {
+  id: number;
+  orderId: number;
+  vendorCompanyId: number;
+  poNumber: string;
+  poStatus: VendorOrderPoStatus;
+  status: VendorOrderStatus;
+  /** @nullable */
+  trackingNumber?: string | null;
+  subtotal: number;
+  createdAt: string;
+}
+
+export type VendorOrderWithItems = VendorOrder & {
+  buyerCompanyName: string;
+  items: OrderItemDetail[];
+};
+
+export interface Banner {
+  id: number;
+  title: string;
+  /** @nullable */
+  subtitle?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+  /** @nullable */
+  linkUrl?: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface BannerInput {
+  title: string;
+  subtitle?: string;
+  imageUrl?: string;
+  linkUrl?: string;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export interface BlogPost {
+  id: number;
+  slug: string;
+  title: string;
+  /** @nullable */
+  excerpt?: string | null;
+  content: string;
+  /** @nullable */
+  coverImageUrl?: string | null;
+  isPublished: boolean;
+  createdAt: string;
+}
+
+export interface BlogPostInput {
+  slug: string;
+  title: string;
+  excerpt?: string;
+  content: string;
+  coverImageUrl?: string;
+  isPublished?: boolean;
+}
+
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface FaqInput {
+  question: string;
+  answer: string;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+/**
  * Opaque session token — `Bearer <sid>`.
  */
 export type AuthorizationSessionHeaderParameter = string;
@@ -543,6 +1096,128 @@ export const ListAdminCompaniesStatus = {
   rejected: 'rejected',
   suspended: 'suspended',
 } as const;
+
+export type UpdateCompanyVerifiedBadgeBody = {
+  verifiedBadge: boolean;
+};
+
+export type ListAdminComplianceCertificatesParams = {
+status?: ListAdminComplianceCertificatesStatus;
+};
+
+export type ListAdminComplianceCertificatesStatus = typeof ListAdminComplianceCertificatesStatus[keyof typeof ListAdminComplianceCertificatesStatus];
+
+
+export const ListAdminComplianceCertificatesStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+  expired: 'expired',
+} as const;
+
+export type UpdateComplianceCertificateStatusBodyStatus = typeof UpdateComplianceCertificateStatusBodyStatus[keyof typeof UpdateComplianceCertificateStatusBodyStatus];
+
+
+export const UpdateComplianceCertificateStatusBodyStatus = {
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export type UpdateComplianceCertificateStatusBody = {
+  status: UpdateComplianceCertificateStatusBodyStatus;
+  adminNote?: string;
+};
+
+export type UpdateReturnStatusBodyStatus = typeof UpdateReturnStatusBodyStatus[keyof typeof UpdateReturnStatusBodyStatus];
+
+
+export const UpdateReturnStatusBodyStatus = {
+  under_review: 'under_review',
+  approved: 'approved',
+  rejected: 'rejected',
+  refunded: 'refunded',
+} as const;
+
+export type UpdateReturnStatusBody = {
+  status: UpdateReturnStatusBodyStatus;
+  adminNote?: string;
+};
+
+export type DecideApprovalRequestBodyDecision = typeof DecideApprovalRequestBodyDecision[keyof typeof DecideApprovalRequestBodyDecision];
+
+
+export const DecideApprovalRequestBodyDecision = {
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export type DecideApprovalRequestBody = {
+  decision: DecideApprovalRequestBodyDecision;
+  note?: string;
+};
+
+export type UpdatePayoutRequestStatusBodyStatus = typeof UpdatePayoutRequestStatusBodyStatus[keyof typeof UpdatePayoutRequestStatusBodyStatus];
+
+
+export const UpdatePayoutRequestStatusBodyStatus = {
+  approved: 'approved',
+  rejected: 'rejected',
+  paid: 'paid',
+} as const;
+
+export type UpdatePayoutRequestStatusBody = {
+  status: UpdatePayoutRequestStatusBodyStatus;
+};
+
+export type UpdateInvoiceStatusBodyStatus = typeof UpdateInvoiceStatusBodyStatus[keyof typeof UpdateInvoiceStatusBodyStatus];
+
+
+export const UpdateInvoiceStatusBodyStatus = {
+  paid: 'paid',
+  overdue: 'overdue',
+} as const;
+
+export type UpdateInvoiceStatusBody = {
+  status: UpdateInvoiceStatusBodyStatus;
+};
+
+export type ListVendorExpiringBatchesParams = {
+withinDays?: number;
+};
+
+export type ListAdminExpiringBatchesParams = {
+withinDays?: number;
+};
+
+export type UpdateVendorOrderPoStatusBodyPoStatus = typeof UpdateVendorOrderPoStatusBodyPoStatus[keyof typeof UpdateVendorOrderPoStatusBodyPoStatus];
+
+
+export const UpdateVendorOrderPoStatusBodyPoStatus = {
+  accepted: 'accepted',
+  rejected: 'rejected',
+} as const;
+
+export type UpdateVendorOrderPoStatusBody = {
+  poStatus: UpdateVendorOrderPoStatusBodyPoStatus;
+};
+
+export type UpdateVendorOrderStatusBodyStatus = typeof UpdateVendorOrderStatusBodyStatus[keyof typeof UpdateVendorOrderStatusBodyStatus];
+
+
+export const UpdateVendorOrderStatusBodyStatus = {
+  confirmed: 'confirmed',
+  processing: 'processing',
+  packed: 'packed',
+  shipped: 'shipped',
+  delivered: 'delivered',
+  completed: 'completed',
+  cancelled: 'cancelled',
+} as const;
+
+export type UpdateVendorOrderStatusBody = {
+  status: UpdateVendorOrderStatusBodyStatus;
+  trackingNumber?: string;
+};
 
 export type ListProductsParams = {
 categoryId?: number;

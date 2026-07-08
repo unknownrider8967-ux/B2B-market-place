@@ -86,7 +86,14 @@ export const GetMyProfileResponse = zod.object({
   "contactEmail": zod.string().nullable(),
   "status": zod.enum(['pending', 'approved', 'rejected', 'suspended']),
   "ownerUserId": zod.string(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "verifiedBadge": zod.boolean().optional(),
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish(),
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().nullish(),
+  "outstandingBalance": zod.number().optional()
 }),zod.null()]),
   "user": zod.object({
   "id": zod.string(),
@@ -94,7 +101,8 @@ export const GetMyProfileResponse = zod.object({
   "firstName": zod.string().nullable(),
   "lastName": zod.string().nullable(),
   "profileImageUrl": zod.string().nullable()
-})
+}),
+  "adminRole": zod.union([zod.literal('super_admin'),zod.literal('operations_manager'),zod.literal('finance_manager'),zod.literal('product_manager'),zod.literal('customer_support'),zod.literal('procurement_manager'),zod.literal(null)]).nullish()
 })
 
 
@@ -135,7 +143,14 @@ export const OnboardMyProfileResponse = zod.object({
   "contactEmail": zod.string().nullable(),
   "status": zod.enum(['pending', 'approved', 'rejected', 'suspended']),
   "ownerUserId": zod.string(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "verifiedBadge": zod.boolean().optional(),
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish(),
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().nullish(),
+  "outstandingBalance": zod.number().optional()
 }),zod.null()]),
   "user": zod.object({
   "id": zod.string(),
@@ -143,7 +158,8 @@ export const OnboardMyProfileResponse = zod.object({
   "firstName": zod.string().nullable(),
   "lastName": zod.string().nullable(),
   "profileImageUrl": zod.string().nullable()
-})
+}),
+  "adminRole": zod.union([zod.literal('super_admin'),zod.literal('operations_manager'),zod.literal('finance_manager'),zod.literal('product_manager'),zod.literal('customer_support'),zod.literal('procurement_manager'),zod.literal(null)]).nullish()
 })
 
 
@@ -162,7 +178,14 @@ export const GetMyCompanyResponse = zod.union([zod.object({
   "contactEmail": zod.string().nullable(),
   "status": zod.enum(['pending', 'approved', 'rejected', 'suspended']),
   "ownerUserId": zod.string(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "verifiedBadge": zod.boolean().optional(),
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish(),
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().nullish(),
+  "outstandingBalance": zod.number().optional()
 }),zod.null()])
 
 
@@ -185,7 +208,14 @@ export const ListAdminCompaniesResponseItem = zod.object({
   "contactEmail": zod.string().nullable(),
   "status": zod.enum(['pending', 'approved', 'rejected', 'suspended']),
   "ownerUserId": zod.string(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "verifiedBadge": zod.boolean().optional(),
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish(),
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().nullish(),
+  "outstandingBalance": zod.number().optional()
 })
 export const ListAdminCompaniesResponse = zod.array(ListAdminCompaniesResponseItem)
 
@@ -213,7 +243,14 @@ export const UpdateCompanyStatusResponse = zod.object({
   "contactEmail": zod.string().nullable(),
   "status": zod.enum(['pending', 'approved', 'rejected', 'suspended']),
   "ownerUserId": zod.string(),
-  "createdAt": zod.coerce.date()
+  "createdAt": zod.coerce.date(),
+  "verifiedBadge": zod.boolean().optional(),
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish(),
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().nullish(),
+  "outstandingBalance": zod.number().optional()
 })
 
 
@@ -227,7 +264,1214 @@ export const GetAdminDashboardResponse = zod.object({
   "activeBuyers": zod.number(),
   "pendingApprovals": zod.number(),
   "totalProducts": zod.number(),
-  "openRfqs": zod.number()
+  "openRfqs": zod.number(),
+  "pendingCompliance": zod.number().optional(),
+  "pendingReturns": zod.number().optional(),
+  "pendingApprovalRequests": zod.number().optional(),
+  "pendingPayouts": zod.number().optional(),
+  "lowStockOffers": zod.number().optional(),
+  "topVendors": zod.array(zod.object({
+  "vendorCompanyId": zod.number(),
+  "vendorName": zod.string(),
+  "totalOrders": zod.number(),
+  "revenue": zod.number()
+})).optional(),
+  "topProducts": zod.array(zod.object({
+  "productId": zod.number(),
+  "productName": zod.string(),
+  "unitsSold": zod.number(),
+  "revenue": zod.number()
+})).optional()
+})
+
+
+/**
+ * @summary List all admin users and their sub-roles
+ */
+export const ListAdminTeamResponseItem = zod.object({
+  "userId": zod.string(),
+  "role": zod.string(),
+  "adminRole": zod.union([zod.literal('super_admin'),zod.literal('operations_manager'),zod.literal('finance_manager'),zod.literal('product_manager'),zod.literal('customer_support'),zod.literal('procurement_manager'),zod.literal(null)]).nullable(),
+  "email": zod.string().nullish(),
+  "firstName": zod.string().nullish(),
+  "lastName": zod.string().nullish()
+})
+export const ListAdminTeamResponse = zod.array(ListAdminTeamResponseItem)
+
+
+/**
+ * @summary Set an admin user's sub-role (super_admin only)
+ */
+export const UpdateAdminRoleParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const UpdateAdminRoleBody = zod.object({
+  "adminRole": zod.union([zod.literal('super_admin'),zod.literal('operations_manager'),zod.literal('finance_manager'),zod.literal('product_manager'),zod.literal('customer_support'),zod.literal('procurement_manager'),zod.literal(null)]).nullable()
+})
+
+export const UpdateAdminRoleResponse = zod.object({
+  "userId": zod.string(),
+  "role": zod.string(),
+  "adminRole": zod.union([zod.literal('super_admin'),zod.literal('operations_manager'),zod.literal('finance_manager'),zod.literal('product_manager'),zod.literal('customer_support'),zod.literal('procurement_manager'),zod.literal(null)]).nullable(),
+  "email": zod.string().nullish(),
+  "firstName": zod.string().nullish(),
+  "lastName": zod.string().nullish()
+})
+
+
+/**
+ * @summary Grant or revoke a company's "Verified Supplier" badge
+ */
+export const UpdateCompanyVerifiedBadgeParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCompanyVerifiedBadgeBody = zod.object({
+  "verifiedBadge": zod.boolean()
+})
+
+export const UpdateCompanyVerifiedBadgeResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "type": zod.enum(['vendor', 'buyer']),
+  "subtype": zod.string(),
+  "registrationNumber": zod.string().nullable(),
+  "taxInfo": zod.string().nullable(),
+  "address": zod.string().nullable(),
+  "contactPhone": zod.string().nullable(),
+  "contactEmail": zod.string().nullable(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'suspended']),
+  "ownerUserId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "verifiedBadge": zod.boolean().optional(),
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish(),
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().nullish(),
+  "outstandingBalance": zod.number().optional()
+})
+
+
+/**
+ * @summary Set a buyer company's credit term (Net 15/30/60) and credit limit
+ */
+export const UpdateCompanyCreditTermsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCompanyCreditTermsBody = zod.object({
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().optional()
+})
+
+export const UpdateCompanyCreditTermsResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "type": zod.enum(['vendor', 'buyer']),
+  "subtype": zod.string(),
+  "registrationNumber": zod.string().nullable(),
+  "taxInfo": zod.string().nullable(),
+  "address": zod.string().nullable(),
+  "contactPhone": zod.string().nullable(),
+  "contactEmail": zod.string().nullable(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'suspended']),
+  "ownerUserId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "verifiedBadge": zod.boolean().optional(),
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish(),
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().nullish(),
+  "outstandingBalance": zod.number().optional()
+})
+
+
+/**
+ * @summary Configure minimum order value, free shipping threshold, and max order quantity
+ */
+export const UpdateVendorOrderRulesBody = zod.object({
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish()
+})
+
+export const UpdateVendorOrderRulesResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "type": zod.enum(['vendor', 'buyer']),
+  "subtype": zod.string(),
+  "registrationNumber": zod.string().nullable(),
+  "taxInfo": zod.string().nullable(),
+  "address": zod.string().nullable(),
+  "contactPhone": zod.string().nullable(),
+  "contactEmail": zod.string().nullable(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'suspended']),
+  "ownerUserId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "verifiedBadge": zod.boolean().optional(),
+  "minOrderValue": zod.number().nullish(),
+  "freeShippingThreshold": zod.number().nullish(),
+  "maxOrderQty": zod.number().nullish(),
+  "creditTerm": zod.enum(['none', 'net15', 'net30', 'net60']).optional(),
+  "creditLimit": zod.number().nullish(),
+  "outstandingBalance": zod.number().optional()
+})
+
+
+/**
+ * @summary Upload a compliance certificate (FDA/CE/ISO/GMP) for review
+ */
+export const CreateComplianceCertificateBody = zod.object({
+  "productId": zod.number().optional(),
+  "certType": zod.enum(['fda', 'ce', 'iso', 'gmp']),
+  "certNumber": zod.string(),
+  "fileUrl": zod.string().optional(),
+  "issuedAt": zod.coerce.date().optional(),
+  "expiresAt": zod.coerce.date().optional()
+})
+
+export const CreateComplianceCertificateResponse = zod.object({
+  "id": zod.number(),
+  "companyId": zod.number(),
+  "productId": zod.number().nullable(),
+  "certType": zod.enum(['fda', 'ce', 'iso', 'gmp']),
+  "certNumber": zod.string(),
+  "fileUrl": zod.string().nullish(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'expired']),
+  "adminNote": zod.string().nullish(),
+  "issuedAt": zod.coerce.date().nullable(),
+  "expiresAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List the current vendor's compliance certificates
+ */
+export const ListMyComplianceCertificatesResponseItem = zod.object({
+  "id": zod.number(),
+  "companyId": zod.number(),
+  "productId": zod.number().nullable(),
+  "certType": zod.enum(['fda', 'ce', 'iso', 'gmp']),
+  "certNumber": zod.string(),
+  "fileUrl": zod.string().nullish(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'expired']),
+  "adminNote": zod.string().nullish(),
+  "issuedAt": zod.coerce.date().nullable(),
+  "expiresAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date()
+})
+export const ListMyComplianceCertificatesResponse = zod.array(ListMyComplianceCertificatesResponseItem)
+
+
+/**
+ * @summary List all compliance certificates for admin review
+ */
+export const ListAdminComplianceCertificatesQueryParams = zod.object({
+  "status": zod.enum(['pending', 'approved', 'rejected', 'expired']).optional()
+})
+
+export const ListAdminComplianceCertificatesResponseItem = zod.object({
+  "id": zod.number(),
+  "companyId": zod.number(),
+  "productId": zod.number().nullable(),
+  "certType": zod.enum(['fda', 'ce', 'iso', 'gmp']),
+  "certNumber": zod.string(),
+  "fileUrl": zod.string().nullish(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'expired']),
+  "adminNote": zod.string().nullish(),
+  "issuedAt": zod.coerce.date().nullable(),
+  "expiresAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "companyName": zod.string()
+}))
+export const ListAdminComplianceCertificatesResponse = zod.array(ListAdminComplianceCertificatesResponseItem)
+
+
+/**
+ * @summary Approve or reject a compliance certificate
+ */
+export const UpdateComplianceCertificateStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateComplianceCertificateStatusBody = zod.object({
+  "status": zod.enum(['approved', 'rejected']),
+  "adminNote": zod.string().optional()
+})
+
+export const UpdateComplianceCertificateStatusResponse = zod.object({
+  "id": zod.number(),
+  "companyId": zod.number(),
+  "productId": zod.number().nullable(),
+  "certType": zod.enum(['fda', 'ce', 'iso', 'gmp']),
+  "certNumber": zod.string(),
+  "fileUrl": zod.string().nullish(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'expired']),
+  "adminNote": zod.string().nullish(),
+  "issuedAt": zod.coerce.date().nullable(),
+  "expiresAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Submit a return, damage claim, or missing-item claim for an order item
+ */
+export const createReturnBodyReasonMax = 2000;
+
+
+
+export const CreateReturnBody = zod.object({
+  "orderItemId": zod.number(),
+  "type": zod.enum(['damaged', 'missing', 'wrong_item', 'other']),
+  "reason": zod.string().max(createReturnBodyReasonMax)
+})
+
+export const CreateReturnResponse = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "orderItemId": zod.number(),
+  "buyerUserId": zod.string(),
+  "vendorCompanyId": zod.number(),
+  "type": zod.enum(['damaged', 'missing', 'wrong_item', 'other']),
+  "status": zod.enum(['requested', 'under_review', 'approved', 'rejected', 'refunded']),
+  "reason": zod.string().nullish(),
+  "adminNote": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List the current buyer's return requests
+ */
+export const ListMyReturnsResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "orderItemId": zod.number(),
+  "buyerUserId": zod.string(),
+  "vendorCompanyId": zod.number(),
+  "type": zod.enum(['damaged', 'missing', 'wrong_item', 'other']),
+  "status": zod.enum(['requested', 'under_review', 'approved', 'rejected', 'refunded']),
+  "reason": zod.string().nullish(),
+  "adminNote": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListMyReturnsResponse = zod.array(ListMyReturnsResponseItem)
+
+
+/**
+ * @summary List return requests for the current vendor's orders
+ */
+export const ListVendorReturnsResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "orderItemId": zod.number(),
+  "buyerUserId": zod.string(),
+  "vendorCompanyId": zod.number(),
+  "type": zod.enum(['damaged', 'missing', 'wrong_item', 'other']),
+  "status": zod.enum(['requested', 'under_review', 'approved', 'rejected', 'refunded']),
+  "reason": zod.string().nullish(),
+  "adminNote": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListVendorReturnsResponse = zod.array(ListVendorReturnsResponseItem)
+
+
+/**
+ * @summary List all return/dispute requests for admin mediation
+ */
+export const ListAdminReturnsResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "orderItemId": zod.number(),
+  "buyerUserId": zod.string(),
+  "vendorCompanyId": zod.number(),
+  "type": zod.enum(['damaged', 'missing', 'wrong_item', 'other']),
+  "status": zod.enum(['requested', 'under_review', 'approved', 'rejected', 'refunded']),
+  "reason": zod.string().nullish(),
+  "adminNote": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminReturnsResponse = zod.array(ListAdminReturnsResponseItem)
+
+
+/**
+ * @summary Update a return's status (vendor or admin)
+ */
+export const UpdateReturnStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateReturnStatusBody = zod.object({
+  "status": zod.enum(['under_review', 'approved', 'rejected', 'refunded']),
+  "adminNote": zod.string().optional()
+})
+
+export const UpdateReturnStatusResponse = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "orderItemId": zod.number(),
+  "buyerUserId": zod.string(),
+  "vendorCompanyId": zod.number(),
+  "type": zod.enum(['damaged', 'missing', 'wrong_item', 'other']),
+  "status": zod.enum(['requested', 'under_review', 'approved', 'rejected', 'refunded']),
+  "reason": zod.string().nullish(),
+  "adminNote": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Get the current buyer company's procurement approval chain
+ */
+export const GetApprovalChainResponse = zod.union([zod.object({
+  "id": zod.number(),
+  "buyerCompanyId": zod.number(),
+  "steps": zod.array(zod.object({
+  "order": zod.number(),
+  "approverRole": zod.string().describe('The role\/title of the person who must approve at this step (e.g. \"Department Head\", \"Procurement Manager\")'),
+  "minAmount": zod.number().nullish().describe('This step only applies to orders at or above this amount')
+})),
+  "createdAt": zod.coerce.date()
+}),zod.null()])
+
+
+/**
+ * @summary Configure the buyer company's multi-step approval chain
+ */
+export const SetApprovalChainBody = zod.object({
+  "steps": zod.array(zod.object({
+  "order": zod.number(),
+  "approverRole": zod.string().describe('The role\/title of the person who must approve at this step (e.g. \"Department Head\", \"Procurement Manager\")'),
+  "minAmount": zod.number().nullish().describe('This step only applies to orders at or above this amount')
+}))
+})
+
+export const SetApprovalChainResponse = zod.object({
+  "id": zod.number(),
+  "buyerCompanyId": zod.number(),
+  "steps": zod.array(zod.object({
+  "order": zod.number(),
+  "approverRole": zod.string().describe('The role\/title of the person who must approve at this step (e.g. \"Department Head\", \"Procurement Manager\")'),
+  "minAmount": zod.number().nullish().describe('This step only applies to orders at or above this amount')
+})),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List approval requests for the current buyer company
+ */
+export const ListApprovalRequestsResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "buyerCompanyId": zod.number(),
+  "currentStep": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'rejected']),
+  "log": zod.array(zod.object({
+  "step": zod.number(),
+  "decision": zod.enum(['approved', 'rejected']),
+  "note": zod.string().nullish(),
+  "decidedAt": zod.coerce.date()
+})),
+  "createdAt": zod.coerce.date()
+})
+export const ListApprovalRequestsResponse = zod.array(ListApprovalRequestsResponseItem)
+
+
+/**
+ * @summary Approve or reject the current step of an approval request
+ */
+export const DecideApprovalRequestParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DecideApprovalRequestBody = zod.object({
+  "decision": zod.enum(['approved', 'rejected']),
+  "note": zod.string().optional()
+})
+
+export const DecideApprovalRequestResponse = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "buyerCompanyId": zod.number(),
+  "currentStep": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'rejected']),
+  "log": zod.array(zod.object({
+  "step": zod.number(),
+  "decision": zod.enum(['approved', 'rejected']),
+  "note": zod.string().nullish(),
+  "decidedAt": zod.coerce.date()
+})),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List commission rules
+ */
+export const ListCommissionRulesResponseItem = zod.object({
+  "id": zod.number(),
+  "vendorSubtype": zod.string().nullish(),
+  "percentage": zod.number(),
+  "isDefault": zod.boolean().optional(),
+  "createdAt": zod.coerce.date()
+})
+export const ListCommissionRulesResponse = zod.array(ListCommissionRulesResponseItem)
+
+
+/**
+ * @summary Create a commission rule
+ */
+export const createCommissionRuleBodyPercentageMin = 0;
+export const createCommissionRuleBodyPercentageMax = 100;
+
+
+
+export const CreateCommissionRuleBody = zod.object({
+  "vendorSubtype": zod.string().nullish(),
+  "percentage": zod.number().min(createCommissionRuleBodyPercentageMin).max(createCommissionRuleBodyPercentageMax),
+  "isDefault": zod.boolean().optional()
+})
+
+export const CreateCommissionRuleResponse = zod.object({
+  "id": zod.number(),
+  "vendorSubtype": zod.string().nullish(),
+  "percentage": zod.number(),
+  "isDefault": zod.boolean().optional(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a commission rule
+ */
+export const UpdateCommissionRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const updateCommissionRuleBodyPercentageMin = 0;
+export const updateCommissionRuleBodyPercentageMax = 100;
+
+
+
+export const UpdateCommissionRuleBody = zod.object({
+  "vendorSubtype": zod.string().nullish(),
+  "percentage": zod.number().min(updateCommissionRuleBodyPercentageMin).max(updateCommissionRuleBodyPercentageMax),
+  "isDefault": zod.boolean().optional()
+})
+
+export const UpdateCommissionRuleResponse = zod.object({
+  "id": zod.number(),
+  "vendorSubtype": zod.string().nullish(),
+  "percentage": zod.number(),
+  "isDefault": zod.boolean().optional(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a commission rule
+ */
+export const DeleteCommissionRuleParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteCommissionRuleResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Get the current vendor's wallet balance and recent transactions
+ */
+export const GetMyWalletResponse = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "availableBalance": zod.number(),
+  "pendingBalance": zod.number(),
+  "transactions": zod.array(zod.object({
+  "id": zod.number(),
+  "walletId": zod.number(),
+  "type": zod.enum(['commission_earned', 'payout', 'adjustment']),
+  "amount": zod.number(),
+  "description": zod.string().nullable(),
+  "relatedOrderId": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Request a payout from available balance
+ */
+export const createPayoutRequestBodyAmountMin = 0.01;
+
+
+
+export const CreatePayoutRequestBody = zod.object({
+  "amount": zod.number().min(createPayoutRequestBodyAmountMin)
+})
+
+export const CreatePayoutRequestResponse = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "amount": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'paid']),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List the current vendor's payout requests
+ */
+export const ListMyPayoutRequestsResponseItem = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "amount": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'paid']),
+  "createdAt": zod.coerce.date()
+})
+export const ListMyPayoutRequestsResponse = zod.array(ListMyPayoutRequestsResponseItem)
+
+
+/**
+ * @summary List all vendor payout requests
+ */
+export const ListAdminPayoutRequestsResponseItem = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "amount": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'paid']),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "vendorName": zod.string()
+}))
+export const ListAdminPayoutRequestsResponse = zod.array(ListAdminPayoutRequestsResponseItem)
+
+
+/**
+ * @summary Approve, reject, or mark a payout request as paid
+ */
+export const UpdatePayoutRequestStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdatePayoutRequestStatusBody = zod.object({
+  "status": zod.enum(['approved', 'rejected', 'paid'])
+})
+
+export const UpdatePayoutRequestStatusResponse = zod.object({
+  "id": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "amount": zod.number(),
+  "status": zod.enum(['pending', 'approved', 'rejected', 'paid']),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List the current buyer company's invoices (credit-term orders)
+ */
+export const ListMyInvoicesResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "buyerCompanyId": zod.number(),
+  "amount": zod.number(),
+  "dueDate": zod.coerce.date(),
+  "status": zod.enum(['unpaid', 'paid', 'overdue']),
+  "createdAt": zod.coerce.date()
+})
+export const ListMyInvoicesResponse = zod.array(ListMyInvoicesResponseItem)
+
+
+/**
+ * @summary List all invoices
+ */
+export const ListAdminInvoicesResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "buyerCompanyId": zod.number(),
+  "amount": zod.number(),
+  "dueDate": zod.coerce.date(),
+  "status": zod.enum(['unpaid', 'paid', 'overdue']),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "buyerCompanyName": zod.string()
+}))
+export const ListAdminInvoicesResponse = zod.array(ListAdminInvoicesResponseItem)
+
+
+/**
+ * @summary Mark an invoice as paid
+ */
+export const UpdateInvoiceStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateInvoiceStatusBody = zod.object({
+  "status": zod.enum(['paid', 'overdue'])
+})
+
+export const UpdateInvoiceStatusResponse = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "buyerCompanyId": zod.number(),
+  "amount": zod.number(),
+  "dueDate": zod.coerce.date(),
+  "status": zod.enum(['unpaid', 'paid', 'overdue']),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List batch/lot records for a vendor offer
+ */
+export const ListOfferBatchesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListOfferBatchesResponseItem = zod.object({
+  "id": zod.number(),
+  "vendorOfferId": zod.number(),
+  "batchNumber": zod.string(),
+  "lotNumber": zod.string().nullish(),
+  "quantity": zod.number(),
+  "manufactureDate": zod.coerce.date().nullish(),
+  "expiryDate": zod.coerce.date(),
+  "createdAt": zod.coerce.date()
+})
+export const ListOfferBatchesResponse = zod.array(ListOfferBatchesResponseItem)
+
+
+/**
+ * @summary Record a new batch/lot for a vendor offer
+ */
+export const CreateOfferBatchParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const createOfferBatchBodyQuantityMin = 0;
+
+
+
+export const CreateOfferBatchBody = zod.object({
+  "batchNumber": zod.string(),
+  "lotNumber": zod.string().optional(),
+  "quantity": zod.number().min(createOfferBatchBodyQuantityMin),
+  "manufactureDate": zod.coerce.date().optional(),
+  "expiryDate": zod.coerce.date()
+})
+
+export const CreateOfferBatchResponse = zod.object({
+  "id": zod.number(),
+  "vendorOfferId": zod.number(),
+  "batchNumber": zod.string(),
+  "lotNumber": zod.string().nullish(),
+  "quantity": zod.number(),
+  "manufactureDate": zod.coerce.date().nullish(),
+  "expiryDate": zod.coerce.date(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Near-expiry / expired batch report for the current vendor
+ */
+export const listVendorExpiringBatchesQueryWithinDaysDefault = 30;
+
+export const ListVendorExpiringBatchesQueryParams = zod.object({
+  "withinDays": zod.coerce.number().default(listVendorExpiringBatchesQueryWithinDaysDefault)
+})
+
+export const ListVendorExpiringBatchesResponseItem = zod.object({
+  "id": zod.number(),
+  "vendorOfferId": zod.number(),
+  "batchNumber": zod.string(),
+  "lotNumber": zod.string().nullish(),
+  "quantity": zod.number(),
+  "manufactureDate": zod.coerce.date().nullish(),
+  "expiryDate": zod.coerce.date(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "productName": zod.string(),
+  "vendorCompanyId": zod.number(),
+  "vendorName": zod.string()
+}))
+export const ListVendorExpiringBatchesResponse = zod.array(ListVendorExpiringBatchesResponseItem)
+
+
+/**
+ * @summary Marketplace-wide near-expiry / expired batch report (for recall management)
+ */
+export const listAdminExpiringBatchesQueryWithinDaysDefault = 30;
+
+export const ListAdminExpiringBatchesQueryParams = zod.object({
+  "withinDays": zod.coerce.number().default(listAdminExpiringBatchesQueryWithinDaysDefault)
+})
+
+export const ListAdminExpiringBatchesResponseItem = zod.object({
+  "id": zod.number(),
+  "vendorOfferId": zod.number(),
+  "batchNumber": zod.string(),
+  "lotNumber": zod.string().nullish(),
+  "quantity": zod.number(),
+  "manufactureDate": zod.coerce.date().nullish(),
+  "expiryDate": zod.coerce.date(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "productName": zod.string(),
+  "vendorCompanyId": zod.number(),
+  "vendorName": zod.string()
+}))
+export const ListAdminExpiringBatchesResponse = zod.array(ListAdminExpiringBatchesResponseItem)
+
+
+/**
+ * @summary List suggested alternative products
+ */
+export const ListProductSubstitutesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListProductSubstitutesResponseItem = zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "substituteProductId": zod.number(),
+  "suggestedByVendorId": zod.number().nullish(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "substituteName": zod.string(),
+  "substituteUnit": zod.string()
+}))
+export const ListProductSubstitutesResponse = zod.array(ListProductSubstitutesResponseItem)
+
+
+/**
+ * @summary Suggest an alternative product (vendor)
+ */
+export const CreateProductSubstituteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const createProductSubstituteBodyNoteMax = 500;
+
+
+
+export const CreateProductSubstituteBody = zod.object({
+  "substituteProductId": zod.number(),
+  "note": zod.string().max(createProductSubstituteBodyNoteMax).optional()
+})
+
+export const CreateProductSubstituteResponse = zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "substituteProductId": zod.number(),
+  "suggestedByVendorId": zod.number().nullish(),
+  "note": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List the current vendor's sub-orders (one per order, doubles as a purchase order)
+ */
+export const ListMyVendorOrdersResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "poNumber": zod.string(),
+  "poStatus": zod.enum(['pending', 'accepted', 'rejected']),
+  "status": zod.enum(['confirmed', 'processing', 'packed', 'shipped', 'delivered', 'completed', 'cancelled']),
+  "trackingNumber": zod.string().nullish(),
+  "subtotal": zod.number(),
+  "createdAt": zod.coerce.date()
+}).and(zod.object({
+  "buyerCompanyName": zod.string(),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "offerId": zod.number(),
+  "productId": zod.number(),
+  "productName": zod.string(),
+  "vendorCompanyId": zod.number(),
+  "vendorName": zod.string(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number(),
+  "subtotal": zod.number()
+}))
+}))
+export const ListMyVendorOrdersResponse = zod.array(ListMyVendorOrdersResponseItem)
+
+
+/**
+ * @summary Accept or reject a purchase order
+ */
+export const UpdateVendorOrderPoStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateVendorOrderPoStatusBody = zod.object({
+  "poStatus": zod.enum(['accepted', 'rejected'])
+})
+
+export const UpdateVendorOrderPoStatusResponse = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "poNumber": zod.string(),
+  "poStatus": zod.enum(['pending', 'accepted', 'rejected']),
+  "status": zod.enum(['confirmed', 'processing', 'packed', 'shipped', 'delivered', 'completed', 'cancelled']),
+  "trackingNumber": zod.string().nullish(),
+  "subtotal": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a vendor sub-order's fulfillment status and tracking number
+ */
+export const UpdateVendorOrderStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateVendorOrderStatusBody = zod.object({
+  "status": zod.enum(['confirmed', 'processing', 'packed', 'shipped', 'delivered', 'completed', 'cancelled']),
+  "trackingNumber": zod.string().optional()
+})
+
+export const UpdateVendorOrderStatusResponse = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "poNumber": zod.string(),
+  "poStatus": zod.enum(['pending', 'accepted', 'rejected']),
+  "status": zod.enum(['confirmed', 'processing', 'packed', 'shipped', 'delivered', 'completed', 'cancelled']),
+  "trackingNumber": zod.string().nullish(),
+  "subtotal": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List the vendor sub-orders / purchase orders that make up a parent order
+ */
+export const ListOrderVendorOrdersParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListOrderVendorOrdersResponseItem = zod.object({
+  "id": zod.number(),
+  "orderId": zod.number(),
+  "vendorCompanyId": zod.number(),
+  "poNumber": zod.string(),
+  "poStatus": zod.enum(['pending', 'accepted', 'rejected']),
+  "status": zod.enum(['confirmed', 'processing', 'packed', 'shipped', 'delivered', 'completed', 'cancelled']),
+  "trackingNumber": zod.string().nullish(),
+  "subtotal": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const ListOrderVendorOrdersResponse = zod.array(ListOrderVendorOrdersResponseItem)
+
+
+/**
+ * @summary List active homepage banners (public)
+ */
+export const ListBannersResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subtitle": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "linkUrl": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const ListBannersResponse = zod.array(ListBannersResponseItem)
+
+
+/**
+ * @summary List all banners
+ */
+export const ListAdminBannersResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subtitle": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "linkUrl": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminBannersResponse = zod.array(ListAdminBannersResponseItem)
+
+
+/**
+ * @summary Create a banner
+ */
+export const CreateBannerBody = zod.object({
+  "title": zod.string(),
+  "subtitle": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "linkUrl": zod.string().optional(),
+  "isActive": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const CreateBannerResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subtitle": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "linkUrl": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a banner
+ */
+export const UpdateBannerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateBannerBody = zod.object({
+  "title": zod.string(),
+  "subtitle": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "linkUrl": zod.string().optional(),
+  "isActive": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const UpdateBannerResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subtitle": zod.string().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "linkUrl": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a banner
+ */
+export const DeleteBannerParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteBannerResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary List published blog posts (public)
+ */
+export const ListBlogPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "excerpt": zod.string().nullish(),
+  "content": zod.string(),
+  "coverImageUrl": zod.string().nullish(),
+  "isPublished": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const ListBlogPostsResponse = zod.array(ListBlogPostsResponseItem)
+
+
+/**
+ * @summary Get a published blog post by slug
+ */
+export const GetBlogPostParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const GetBlogPostResponse = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "excerpt": zod.string().nullish(),
+  "content": zod.string(),
+  "coverImageUrl": zod.string().nullish(),
+  "isPublished": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List all blog posts (including drafts)
+ */
+export const ListAdminBlogPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "excerpt": zod.string().nullish(),
+  "content": zod.string(),
+  "coverImageUrl": zod.string().nullish(),
+  "isPublished": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminBlogPostsResponse = zod.array(ListAdminBlogPostsResponseItem)
+
+
+/**
+ * @summary Create a blog post
+ */
+export const CreateBlogPostBody = zod.object({
+  "slug": zod.string(),
+  "title": zod.string(),
+  "excerpt": zod.string().optional(),
+  "content": zod.string(),
+  "coverImageUrl": zod.string().optional(),
+  "isPublished": zod.boolean().optional()
+})
+
+export const CreateBlogPostResponse = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "excerpt": zod.string().nullish(),
+  "content": zod.string(),
+  "coverImageUrl": zod.string().nullish(),
+  "isPublished": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a blog post
+ */
+export const UpdateBlogPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateBlogPostBody = zod.object({
+  "slug": zod.string(),
+  "title": zod.string(),
+  "excerpt": zod.string().optional(),
+  "content": zod.string(),
+  "coverImageUrl": zod.string().optional(),
+  "isPublished": zod.boolean().optional()
+})
+
+export const UpdateBlogPostResponse = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "excerpt": zod.string().nullish(),
+  "content": zod.string(),
+  "coverImageUrl": zod.string().nullish(),
+  "isPublished": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a blog post
+ */
+export const DeleteBlogPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteBlogPostResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary List active FAQs (public)
+ */
+export const ListFaqsResponseItem = zod.object({
+  "id": zod.number(),
+  "question": zod.string(),
+  "answer": zod.string(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const ListFaqsResponse = zod.array(ListFaqsResponseItem)
+
+
+/**
+ * @summary List all FAQs
+ */
+export const ListAdminFaqsResponseItem = zod.object({
+  "id": zod.number(),
+  "question": zod.string(),
+  "answer": zod.string(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAdminFaqsResponse = zod.array(ListAdminFaqsResponseItem)
+
+
+/**
+ * @summary Create an FAQ entry
+ */
+export const CreateFaqBody = zod.object({
+  "question": zod.string(),
+  "answer": zod.string(),
+  "isActive": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const CreateFaqResponse = zod.object({
+  "id": zod.number(),
+  "question": zod.string(),
+  "answer": zod.string(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update an FAQ entry
+ */
+export const UpdateFaqParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateFaqBody = zod.object({
+  "question": zod.string(),
+  "answer": zod.string(),
+  "isActive": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const UpdateFaqResponse = zod.object({
+  "id": zod.number(),
+  "question": zod.string(),
+  "answer": zod.string(),
+  "isActive": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete an FAQ entry
+ */
+export const DeleteFaqParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteFaqResponse = zod.object({
+  "success": zod.boolean()
 })
 
 
