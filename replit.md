@@ -4,7 +4,7 @@ A B2B multi-vendor marketplace where hospitals/buyers browse medical supplies, c
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
 - `pnpm --filter @workspace/marketplace run dev` — run the marketplace web frontend
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
