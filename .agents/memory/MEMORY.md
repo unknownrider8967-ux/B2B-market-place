@@ -5,4 +5,5 @@
 - [OpenAPI duplicate path keys break codegen](openapi-duplicate-paths.md) — all HTTP verbs for the same path must be nested under one path entry; duplicate path keys in YAML cause orval to fail with "Failed to resolve input".
 - [Admin products query invalidation must use generated keys](react-query-invalidation-keys.md) — always use `getListProductsQueryKey()`, `getListCategoriesQueryKey()` etc from @workspace/api-client-react; string-based invalidation (['products']) does not match the path-based keys orval generates.
 - [Imported pnpm monorepo needs install first](imported-monorepo-node-modules.md) — a GitHub-imported pnpm workspace ships without node_modules; workflows fail with ERR_MODULE_NOT_FOUND / "vite: not found" until `pnpm install` runs at the workspace root.
+- [Wallet/ledger mutations need transactions](wallet-ledger-transactions.md) — money-moving features need SQL-atomic balance increments, DB-guarded status transitions, and one transaction spanning status + ledger writes.
 </content>

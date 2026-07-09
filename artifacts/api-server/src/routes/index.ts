@@ -13,6 +13,7 @@ import rfqsRouter from "./rfqs";
 import wishlistRouter from "./wishlist";
 import notificationsRouter from "./notifications";
 import reviewsRouter from "./reviews";
+import walletRouter from "./wallet";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(rfqsRouter);
 router.use(wishlistRouter);
 router.use(notificationsRouter);
 router.use(reviewsRouter);
+router.use(walletRouter);
 
 export default router;

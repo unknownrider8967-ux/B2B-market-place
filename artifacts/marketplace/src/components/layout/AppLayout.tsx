@@ -6,7 +6,7 @@ import {
   Loader2, LogOut, Package, ShoppingCart, FileText,
   ClipboardList, LayoutDashboard, Building2, Heart,
   Menu, X, Activity, BarChart3, Receipt, Warehouse,
-  MapPin, Shield, Tag,
+  MapPin, Shield, Tag, Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/ui/notification-bell";
@@ -165,6 +165,7 @@ export function AppLayout({
         { href: "/vendor/rfqs",          label: "RFQs",          icon: FileText },
         { href: "/vendor/warehouses",    label: "Warehouses",    icon: Warehouse },
         { href: "/vendor/shipping-zones", label: "Shipping",     icon: MapPin },
+        { href: "/vendor/wallet",        label: "Wallet",        icon: Wallet },
       ];
     }
     if (role === "admin") {
@@ -173,6 +174,7 @@ export function AppLayout({
         { href: "/admin/companies", label: "Companies",  icon: Building2 },
         { href: "/admin/products",  label: "Products",   icon: Package },
         { href: "/admin/coupons",   label: "Coupons",    icon: Tag },
+        { href: "/admin/payouts",   label: "Payouts",    icon: Wallet },
         { href: "/admin/reports",   label: "Reports",    icon: BarChart3 },
         { href: "/admin/audit-logs", label: "Audit Logs", icon: Shield },
       ];

@@ -10,8 +10,11 @@ import {
   orderItemsTable,
   couponsTable,
   vendorOrdersTable,
+  vendorWalletsTable,
+  walletTransactionsTable,
 } from "@workspace/db";
 import { computeDiscount } from "./coupons";
+import { getCommissionPercentage } from "../lib/commission";
 import {
   CheckoutCartResponse,
   ListMyOrdersResponse,
@@ -270,18 +273,100 @@ router.patch("/orders/:id/status", async (req: Request, res: Response): Promise<
     }
   }
 
-  const [updated] = await db
-    .update(ordersTable)
-    .set({ status: body.data.status })
-    .where(eq(ordersTable.id, params.data.id))
-    .returning();
+  // "completed" and "cancelled" are terminal: once an order reaches either, it cannot be
+  // transitioned again. This is what makes the "completed" wallet-crediting below safe —
+  // a completed order can never be flipped back and then re-completed to double-credit.
+  //
+  // The status transition and (for "completed") the per-vendor wallet credits + ledger inserts
+  // all happen inside one DB transaction, so an order can never end up "completed" without its
+  // wallet credits having also committed (or vice versa) — a mid-flow failure rolls back both.
+  const updated = await db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(ordersTable)
+      .set({ status: body.data.status })
+      .where(
+        and(
+          eq(ordersTable.id, params.data.id),
+          sql`${ordersTable.status} NOT IN ('completed', 'cancelled')`,
+        ),
+      )
+      .returning();
+
+    if (!row) return null;
+
+    if (body.data.status === "completed") {
+      const items = await tx
+        .select({
+          vendorCompanyId: orderItemsTable.vendorCompanyId,
+          subtotal: orderItemsTable.subtotal,
+        })
+        .from(orderItemsTable)
+        .where(eq(orderItemsTable.orderId, row.id));
+
+      const byVendor = new Map<number, number>();
+      for (const item of items) {
+        byVendor.set(item.vendorCompanyId, (byVendor.get(item.vendorCompanyId) ?? 0) + Number(item.subtotal));
+      }
+
+      for (const [vendorCompanyId, vendorSubtotal] of byVendor) {
+        const commissionPct = await getCommissionPercentage(vendorCompanyId);
+        const commissionAmount = vendorSubtotal * (commissionPct / 100);
+        const netAmount = vendorSubtotal - commissionAmount;
+
+        const [existingWallet] = await tx
+          .select()
+          .from(vendorWalletsTable)
+          .where(eq(vendorWalletsTable.vendorCompanyId, vendorCompanyId))
+          .limit(1);
+        if (!existingWallet) {
+          await tx.insert(vendorWalletsTable).values({ vendorCompanyId }).onConflictDoNothing();
+        }
+
+        await tx
+          .update(vendorWalletsTable)
+          .set({ availableBalance: sql`${vendorWalletsTable.availableBalance} + ${netAmount.toFixed(2)}` })
+          .where(eq(vendorWalletsTable.vendorCompanyId, vendorCompanyId));
+
+        await tx.insert(walletTransactionsTable).values([
+          {
+            vendorCompanyId,
+            type: "sale",
+            amount: vendorSubtotal.toFixed(2),
+            relatedOrderId: row.id,
+            description: `Order #${row.id} sale`,
+          },
+          {
+            vendorCompanyId,
+            type: "commission",
+            amount: (-commissionAmount).toFixed(2),
+            relatedOrderId: row.id,
+            description: `Order #${row.id} commission (${commissionPct}%)`,
+          },
+        ]);
+      }
+    }
+
+    return row;
+  });
 
   if (!updated) {
-    res.status(404).json({ error: "Order not found" });
+    const [existing] = await db.select().from(ordersTable).where(eq(ordersTable.id, params.data.id));
+    if (!existing) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+    if (existing.status === body.data.status) {
+      // No-op: already in the requested terminal state.
+      const result = await buildOrderWithItems(existing.id);
+      res.json(UpdateOrderStatusResponse.parse(result));
+      return;
+    }
+    res.status(409).json({ error: `Order is already ${existing.status} and cannot be changed` });
     return;
   }
 
-  // Notify the buyer about the order status change
+  // Notify the buyer about the order status change — best-effort, after the financial
+  // transaction has committed, so a notification failure can never block/roll back settlement.
   const statusLabels: Record<string, string> = {
     confirmed: "confirmed ✅",
     shipped: "shipped 🚚",

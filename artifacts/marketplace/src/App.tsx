@@ -20,6 +20,7 @@ const VendorOrders       = lazy(() => import("@/pages/vendor/orders"));
 const VendorRfqs         = lazy(() => import("@/pages/vendor/rfqs"));
 const VendorWarehouses   = lazy(() => import("@/pages/vendor/warehouses"));
 const VendorShipping     = lazy(() => import("@/pages/vendor/shipping-zones"));
+const VendorWallet       = lazy(() => import("@/pages/vendor/wallet"));
 
 const AdminDashboard  = lazy(() => import("@/pages/admin/dashboard"));
 const AdminCompanies  = lazy(() => import("@/pages/admin/companies"));
@@ -27,6 +28,7 @@ const AdminProducts   = lazy(() => import("@/pages/admin/products"));
 const AdminCoupons    = lazy(() => import("@/pages/admin/coupons"));
 const AdminReports    = lazy(() => import("@/pages/admin/reports"));
 const AdminAuditLogs  = lazy(() => import("@/pages/admin/audit-logs"));
+const AdminPayouts    = lazy(() => import("@/pages/admin/payouts"));
 
 function PageLoader() {
   return (
@@ -95,6 +97,9 @@ export default function App() {
       <Route path="/vendor/shipping-zones">
         <AppLayout allowedRoles={["vendor"]}><Wrap><VendorShipping /></Wrap></AppLayout>
       </Route>
+      <Route path="/vendor/wallet">
+        <AppLayout allowedRoles={["vendor"]}><Wrap><VendorWallet /></Wrap></AppLayout>
+      </Route>
 
       {/* Admin */}
       <Route path="/admin">
@@ -114,6 +119,9 @@ export default function App() {
       </Route>
       <Route path="/admin/audit-logs">
         <AppLayout allowedRoles={["admin"]}><Wrap><AdminAuditLogs /></Wrap></AppLayout>
+      </Route>
+      <Route path="/admin/payouts">
+        <AppLayout allowedRoles={["admin"]}><Wrap><AdminPayouts /></Wrap></AppLayout>
       </Route>
 
       {/* 404 */}
