@@ -4,6 +4,7 @@ import { Switch, Route } from "wouter";
 import { Loader2 } from "lucide-react";
 
 const Landing       = lazy(() => import("@/pages/landing"));
+const Login         = lazy(() => import("@/pages/login"));
 const Onboarding    = lazy(() => import("@/pages/onboarding"));
 const Browse        = lazy(() => import("@/pages/buyer/browse"));
 const ProductDetail = lazy(() => import("@/pages/buyer/product-detail"));
@@ -44,6 +45,9 @@ export default function App() {
     <Switch>
       <Route path="/">
         <Wrap><Landing /></Wrap>
+      </Route>
+      <Route path="/login">
+        <Wrap><Login /></Wrap>
       </Route>
       <Route path="/onboarding">
         <Wrap><Onboarding /></Wrap>

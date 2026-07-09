@@ -36,6 +36,62 @@ export const GetCurrentAuthUserResponse = zod.object({
 
 
 /**
+ * @summary Create an account with email and password
+ */
+export const registerWithPasswordBodyPasswordMin = 8;
+
+
+
+export const RegisterWithPasswordBody = zod.object({
+  "email": zod.string().email(),
+  "password": zod.string().min(registerWithPasswordBodyPasswordMin),
+  "firstName": zod.string().optional(),
+  "lastName": zod.string().optional()
+})
+
+export const RegisterWithPasswordResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string().email().nullable(),
+  "firstName": zod.string().nullable(),
+  "lastName": zod.string().nullable(),
+  "profileImageUrl": zod.string().nullable()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Log in with email and password
+ */
+export const LoginWithPasswordBody = zod.object({
+  "email": zod.string().email(),
+  "password": zod.string()
+})
+
+export const LoginWithPasswordResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string().email().nullable(),
+  "firstName": zod.string().nullable(),
+  "lastName": zod.string().nullable(),
+  "profileImageUrl": zod.string().nullable()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Clear the current session (JSON API, no redirect)
+ */
+export const LogoutSessionHeader = zod.object({
+  "Authorization": zod.string().optional().describe('Opaque session token — `Bearer <sid>`.')
+})
+
+export const LogoutSessionResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary Start the browser OIDC login flow
  */
 export const BeginBrowserLoginQueryParams = zod.object({

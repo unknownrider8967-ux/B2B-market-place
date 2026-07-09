@@ -42,12 +42,14 @@ export function useAuth(): AuthState {
   }, []);
 
   const login = useCallback(() => {
-    const base = import.meta.env.BASE_URL.replace(/\/+$/, "") || "/";
-    window.location.href = `/api/login?returnTo=${encodeURIComponent(base)}`;
+    const base = import.meta.env.BASE_URL.replace(/\/+$/, "") || "";
+    window.location.href = `${base}/login`;
   }, []);
 
   const logout = useCallback(() => {
-    window.location.href = "/api/logout";
+    fetch("/api/auth/logout", { method: "POST", credentials: "include" }).finally(() => {
+      window.location.href = "/";
+    });
   }, []);
 
   return {

@@ -82,6 +82,75 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthUserEnvelope"
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: registerWithPassword
+      summary: Create an account with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "200":
+          description: Account created and session started.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+        "400":
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+        "409":
+          description: Email already registered.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: loginWithPassword
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Session started.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+        "401":
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logoutSession
+      summary: Clear the current session (JSON API, no redirect)
+      parameters:
+        - $ref: "#/components/parameters/AuthorizationSessionHeader"
+        - $ref: "#/components/parameters/SessionCookie"
+      responses:
+        "200":
+          description: Session cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
   /login:
     get:
       tags: [Auth]
@@ -2641,6 +2710,31 @@ components:
           oneOf:
             - $ref: "#/components/schemas/AuthUser"
             - type: "null"
+
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        firstName:
+          type: string
+        lastName:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
 
     MyProfile:
       type: object

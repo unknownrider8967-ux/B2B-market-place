@@ -33,6 +33,19 @@ export interface AuthUserEnvelope {
   user: AuthUser | null;
 }
 
+export interface RegisterRequest {
+  email: string;
+  /** @minLength 8 */
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 export type MyProfileRole = typeof MyProfileRole[keyof typeof MyProfileRole];
 
 

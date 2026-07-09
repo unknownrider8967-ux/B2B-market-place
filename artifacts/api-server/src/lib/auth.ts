@@ -9,6 +9,34 @@ export const ISSUER_URL = process.env.ISSUER_URL ?? "https://replit.com/oidc";
 export const SESSION_COOKIE = "sid";
 export const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
 
+const SCRYPT_KEYLEN = 64;
+
+export function hashPassword(password: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(16).toString("hex");
+    crypto.scrypt(password, salt, SCRYPT_KEYLEN, (err, derivedKey) => {
+      if (err) return reject(err);
+      resolve(`${salt}:${derivedKey.toString("hex")}`);
+    });
+  });
+}
+
+export function verifyPassword(
+  password: string,
+  storedHash: string,
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const [salt, key] = storedHash.split(":");
+    if (!salt || !key) return resolve(false);
+    crypto.scrypt(password, salt, SCRYPT_KEYLEN, (err, derivedKey) => {
+      if (err) return reject(err);
+      const keyBuffer = Buffer.from(key, "hex");
+      if (keyBuffer.length !== derivedKey.length) return resolve(false);
+      resolve(crypto.timingSafeEqual(keyBuffer, derivedKey));
+    });
+  });
+}
+
 export interface SessionData {
   user: AuthUser;
   access_token: string;
