@@ -3,6 +3,7 @@ import { useListProductOffers, useGetProduct } from "@workspace/api-client-react
 import { getListProductOffersQueryKey, getGetProductQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Loader2,
   Package,
@@ -101,8 +102,18 @@ export default function ComparePage() {
 
   if (productLoading || offersLoading) {
     return (
-      <div className="flex justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="max-w-7xl mx-auto space-y-6">
+        <Skeleton className="h-8 w-48 skeleton-shimmer" />
+        <div className="rounded-xl border border-border overflow-hidden">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex gap-4 p-4 border-b border-border last:border-0">
+              <Skeleton className="h-4 w-28 skeleton-shimmer shrink-0" />
+              {[1, 2, 3].map((j) => (
+                <Skeleton key={j} className="h-4 flex-1 skeleton-shimmer" />
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

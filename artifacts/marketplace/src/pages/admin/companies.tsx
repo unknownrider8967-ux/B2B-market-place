@@ -5,15 +5,15 @@ import type { CompanyStatus } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Building2, Check, X, Ban } from "lucide-react";
+import { Building2, Check, X, Ban } from "lucide-react";
 
-const statusStyles: Record<string, string> = {
-  pending: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
-  approved: "bg-primary/15 text-primary border-primary/30",
-  rejected: "bg-destructive/15 text-destructive border-destructive/30",
+const STATUS_STYLES: Record<string, string> = {
+  pending:   "bg-amber-500/12 text-amber-600 border-amber-400/30",
+  approved:  "bg-primary/12 text-primary border-primary/30",
+  rejected:  "bg-destructive/12 text-destructive border-destructive/30",
   suspended: "bg-muted text-muted-foreground border-border",
 };
 
@@ -25,8 +25,33 @@ const FILTERS: { label: string; value: CompanyStatus | "all" }[] = [
   { label: "Suspended", value: "suspended" },
 ];
 
+function TableSkeleton() {
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <Table>
+        <TableHeader className="bg-muted/40">
+          <TableRow>
+            {["Company", "Type", "Contact", "Status", "Actions"].map((h) => (
+              <TableHead key={h}>{h}</TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <TableRow key={i}>
+              {[1, 2, 3, 4, 5].map((j) => (
+                <TableCell key={j}><Skeleton className="h-4 w-full skeleton-shimmer" /></TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 export default function AdminCompanies() {
-  const [filter, setFilter] = useState<CompanyStatus | "all">("all");
+  const [filter, setFilter] = useState<CompanyStatus | "all">("pending");
   const { data: companies = [], isLoading } = useListAdminCompanies(
     filter === "all" ? undefined : { status: filter },
     { query: { queryKey: getListAdminCompaniesQueryKey(filter === "all" ? undefined : { status: filter }) } },
@@ -48,33 +73,52 @@ export default function AdminCompanies() {
     );
   };
 
+  const pendingCount = filter === "pending" ? companies.length : undefined;
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in">
-      <div className="flex items-center gap-3">
-        <Building2 className="h-7 w-7 text-primary" />
-        <h1 className="text-3xl font-bold text-foreground">Companies</h1>
+    <div className="max-w-6xl mx-auto space-y-6 page-enter">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Companies</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Review and manage buyer and vendor registrations.</p>
+        </div>
+        {pendingCount !== undefined && pendingCount > 0 && (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-400/30 rounded-lg text-xs font-medium text-amber-600">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            {pendingCount} awaiting review
+          </div>
+        )}
       </div>
 
+      {/* Filter pills */}
       <div className="flex gap-2 flex-wrap">
         {FILTERS.map((f) => (
-          <Button key={f.value} size="sm" variant={filter === f.value ? "default" : "outline"} onClick={() => setFilter(f.value)}>
+          <Button
+            key={f.value}
+            size="sm"
+            variant={filter === f.value ? "default" : "outline"}
+            className="h-7 text-xs"
+            onClick={() => setFilter(f.value)}
+          >
             {f.label}
           </Button>
         ))}
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <TableSkeleton />
       ) : companies.length === 0 ? (
-        <div className="text-center py-20 bg-card border border-border rounded-xl text-muted-foreground">
-          No companies match this filter.
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-4">
+            <Building2 className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h2 className="text-base font-semibold text-foreground">No companies</h2>
+          <p className="text-sm text-muted-foreground mt-1">No companies match the selected filter.</p>
         </div>
       ) : (
         <div className="bg-card border border-border rounded-xl overflow-hidden">
           <Table>
-            <TableHeader className="bg-muted/50">
+            <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead>Company</TableHead>
                 <TableHead>Type</TableHead>
@@ -85,40 +129,62 @@ export default function AdminCompanies() {
             </TableHeader>
             <TableBody>
               {companies.map((c) => (
-                <TableRow key={c.id} className="hover:bg-muted/30">
+                <TableRow key={c.id} className="hover:bg-muted/20 transition-colors">
                   <TableCell>
-                    <div className="font-medium">{c.name}</div>
-                    <div className="text-xs text-muted-foreground">{c.registrationNumber || "No registration #"}</div>
+                    <div className="font-semibold text-sm text-foreground">{c.name}</div>
+                    {c.registrationNumber && (
+                      <div className="text-xs text-muted-foreground font-mono">{c.registrationNumber}</div>
+                    )}
                   </TableCell>
                   <TableCell>
-                    <div className="capitalize">{c.type}</div>
+                    <div className="text-sm capitalize text-foreground">{c.type}</div>
                     <div className="text-xs text-muted-foreground">{c.subtype}</div>
                   </TableCell>
                   <TableCell className="text-sm">
-                    <div>{c.contactEmail}</div>
-                    <div className="text-xs text-muted-foreground">{c.contactPhone}</div>
+                    {c.contactEmail && <div className="text-foreground">{c.contactEmail}</div>}
+                    {c.contactPhone && <div className="text-xs text-muted-foreground">{c.contactPhone}</div>}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={statusStyles[c.status] ?? ""}>
+                    <Badge variant="outline" className={`text-xs ${STATUS_STYLES[c.status] ?? ""}`}>
                       {c.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right space-x-1">
-                    {c.status !== "approved" && (
-                      <Button variant="ghost" size="icon" className="text-primary hover:text-primary" onClick={() => handleUpdate(c.id, "approved")} title="Approve">
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {c.status !== "rejected" && (
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleUpdate(c.id, "rejected")} title="Reject">
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {c.status !== "suspended" && (
-                      <Button variant="ghost" size="icon" className="text-muted-foreground" onClick={() => handleUpdate(c.id, "suspended")} title="Suspend">
-                        <Ban className="h-4 w-4" />
-                      </Button>
-                    )}
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      {c.status !== "approved" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => handleUpdate(c.id, "approved")}
+                          title="Approve"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      {c.status !== "rejected" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleUpdate(c.id, "rejected")}
+                          title="Reject"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      {c.status !== "suspended" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
+                          onClick={() => handleUpdate(c.id, "suspended")}
+                          title="Suspend"
+                        >
+                          <Ban className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

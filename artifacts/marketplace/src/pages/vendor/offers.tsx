@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Plus, Pencil, Trash2, PackagePlus, Package, Upload } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -186,11 +187,11 @@ export default function VendorOffers() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in">
+    <div className="max-w-6xl mx-auto space-y-6 page-enter">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">My Offers</h1>
-          <p className="text-muted-foreground">Manage the products and pricing you offer to buyers.</p>
+          <h1 className="text-2xl font-bold text-foreground">My Offers</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage the products and pricing you offer to buyers.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setProductDialogOpen(true)}>
@@ -203,14 +204,27 @@ export default function VendorOffers() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="grid grid-cols-7 gap-4 px-4 py-3 bg-muted/40 border-b border-border">
+            {["Product","Price","MOQ","Stock","Delivery","Status","Actions"].map((h) => (
+              <Skeleton key={h} className="h-4 skeleton-shimmer" />
+            ))}
+          </div>
+          {[1,2,3,4].map((i) => (
+            <div key={i} className="grid grid-cols-7 gap-4 px-4 py-4 border-b border-border last:border-0">
+              {[1,2,3,4,5,6,7].map((j) => (
+                <Skeleton key={j} className="h-4 skeleton-shimmer" />
+              ))}
+            </div>
+          ))}
         </div>
       ) : offers.length === 0 ? (
-        <div className="text-center py-20 bg-card border border-border rounded-xl">
-          <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-foreground">No offers yet</h2>
-          <p className="text-muted-foreground mt-2">List your first offer to start selling.</p>
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+            <Package className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground">No offers yet</h2>
+          <p className="text-sm text-muted-foreground mt-1">List your first offer to start selling.</p>
         </div>
       ) : (
         <div className="bg-card border border-border rounded-xl overflow-hidden">

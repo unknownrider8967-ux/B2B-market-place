@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Plus, Pencil, Trash2, Tag } from "lucide-react";
 
 type DiscountType = "percentage" | "fixed";
@@ -140,20 +141,29 @@ export default function AdminCoupons() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 page-enter">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Tag className="h-7 w-7 text-primary" />
-          <h1 className="text-3xl font-bold text-foreground">Coupons</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Coupons</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Create and manage discount codes for buyers.</p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" /> New Coupon
+        <Button size="sm" onClick={openCreate} className="gap-1.5">
+          <Plus className="h-4 w-4" /> New Coupon
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="grid grid-cols-8 gap-4 px-4 py-3 bg-muted/40 border-b border-border">
+            {["Code","Type","Value","Min Order","Usage","Expires","Status",""].map((h, i) => (
+              <Skeleton key={i} className="h-4 skeleton-shimmer" />
+            ))}
+          </div>
+          {[1,2,3].map((i) => (
+            <div key={i} className="grid grid-cols-8 gap-4 px-4 py-4 border-b border-border last:border-0">
+              {[1,2,3,4,5,6,7,8].map((j) => <Skeleton key={j} className="h-4 skeleton-shimmer" />)}
+            </div>
+          ))}
         </div>
       ) : (
         <div className="bg-card border border-border rounded-xl overflow-hidden">

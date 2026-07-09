@@ -232,10 +232,10 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in">
-      <div className="flex items-center gap-3">
-        <Package className="h-7 w-7 text-primary" />
-        <h1 className="text-3xl font-bold text-foreground">Product Catalog</h1>
+    <div className="max-w-7xl mx-auto space-y-6 page-enter">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Product Catalog</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Manage master products, categories, and variants.</p>
       </div>
 
       <Tabs defaultValue="products">
