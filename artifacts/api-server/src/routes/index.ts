@@ -16,6 +16,7 @@ import reviewsRouter from "./reviews";
 import walletRouter from "./wallet";
 import couponsRouter from "./coupons";
 import integrationsRouter from "./integrations";
+import returnsRouter from "./returns";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(reviewsRouter);
 router.use(walletRouter);
 router.use(couponsRouter);
 router.use(integrationsRouter);
+router.use(returnsRouter);
 
 export default router;

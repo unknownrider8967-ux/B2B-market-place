@@ -6,7 +6,7 @@ import {
   Loader2, LogOut, Package, ShoppingCart, FileText,
   ClipboardList, LayoutDashboard, Building2, Heart,
   Menu, X, Activity, BarChart3, Receipt, Warehouse,
-  MapPin, Shield, Tag, Wallet, Plug,
+  MapPin, Shield, Tag, Wallet, Plug, RotateCcw, User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/ui/notification-bell";
@@ -155,6 +155,8 @@ export function AppLayout({
         { href: "/rfq",      label: "RFQs",       icon: FileText },
         { href: "/wishlist", label: "Wishlist",   icon: Heart },
         { href: "/compare",  label: "Compare",    icon: BarChart3 },
+        { href: "/returns",  label: "Returns",    icon: RotateCcw },
+        { href: "/profile",  label: "Profile",    icon: User },
       ];
     }
     if (role === "vendor") {
@@ -166,6 +168,8 @@ export function AppLayout({
         { href: "/vendor/warehouses",    label: "Warehouses",    icon: Warehouse },
         { href: "/vendor/shipping-zones", label: "Shipping",     icon: MapPin },
         { href: "/vendor/wallet",        label: "Wallet",        icon: Wallet },
+        { href: "/vendor/returns",       label: "Returns",       icon: RotateCcw },
+        { href: "/vendor/profile",       label: "Profile",       icon: User },
       ];
     }
     if (role === "admin") {
@@ -175,6 +179,7 @@ export function AppLayout({
         { href: "/admin/products",  label: "Products",   icon: Package },
         { href: "/admin/coupons",   label: "Coupons",    icon: Tag },
         { href: "/admin/payouts",   label: "Payouts",    icon: Wallet },
+        { href: "/admin/returns",   label: "Returns",    icon: RotateCcw },
         { href: "/admin/reports",   label: "Reports",    icon: BarChart3 },
         { href: "/admin/audit-logs", label: "Audit Logs", icon: Shield },
       ];
