@@ -62,4 +62,46 @@ router.patch("/companies/mine", async (req: Request, res: Response): Promise<voi
   res.json(serializeCompany(updated));
 });
 
+// PATCH /vendor/order-rules — vendor sets min order value, free shipping threshold, max qty
+const UpdateVendorOrderRulesBody = z.object({
+  minOrderValue: z.number().min(0).nullable().optional(),
+  maxOrderQty: z.number().int().min(1).nullable().optional(),
+  freeShippingThreshold: z.number().min(0).nullable().optional(),
+});
+
+router.patch("/vendor/order-rules", async (req: Request, res: Response): Promise<void> => {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+  const profile = await getOrCreateProfile(req.user.id);
+  if (profile.role !== "vendor" || !profile.companyId) {
+    res.status(403).json({ error: "Vendor company required" });
+    return;
+  }
+
+  const parsed = UpdateVendorOrderRulesBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const updateData: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(parsed.data)) {
+    if (v !== undefined) updateData[k] = v;
+  }
+  if (Object.keys(updateData).length === 0) {
+    res.status(400).json({ error: "No fields to update" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(companiesTable)
+    .set({ ...updateData, updatedAt: new Date() })
+    .where(eq(companiesTable.id, profile.companyId))
+    .returning();
+
+  res.json(serializeCompany(updated));
+});
+
 export default router;

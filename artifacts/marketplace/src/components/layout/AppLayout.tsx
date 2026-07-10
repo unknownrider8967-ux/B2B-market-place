@@ -7,6 +7,7 @@ import {
   ClipboardList, LayoutDashboard, Building2, Heart,
   Menu, X, Activity, BarChart3, Receipt, Warehouse,
   MapPin, Shield, Tag, Wallet, Plug, RotateCcw, User,
+  Bell, ShieldCheck, FlaskConical, Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/ui/notification-bell";
@@ -149,27 +150,33 @@ export function AppLayout({
     const role = profile?.role;
     if (role === "buyer") {
       return [
-        { href: "/browse",   label: "Browse",    icon: Package },
-        { href: "/cart",     label: "Cart",       icon: ShoppingCart },
-        { href: "/orders",   label: "Orders",     icon: ClipboardList },
-        { href: "/rfq",      label: "RFQs",       icon: FileText },
-        { href: "/wishlist", label: "Wishlist",   icon: Heart },
-        { href: "/compare",  label: "Compare",    icon: BarChart3 },
-        { href: "/returns",  label: "Returns",    icon: RotateCcw },
-        { href: "/profile",  label: "Profile",    icon: User },
+        { href: "/browse",         label: "Browse",         icon: Package },
+        { href: "/cart",           label: "Cart",           icon: ShoppingCart },
+        { href: "/orders",         label: "Orders",         icon: ClipboardList },
+        { href: "/rfq",            label: "RFQs",           icon: FileText },
+        { href: "/invoices",       label: "Invoices",       icon: Receipt },
+        { href: "/wishlist",       label: "Wishlist",       icon: Heart },
+        { href: "/compare",        label: "Compare",        icon: BarChart3 },
+        { href: "/returns",        label: "Returns",        icon: RotateCcw },
+        { href: "/notifications",  label: "Notifications",  icon: Bell },
+        { href: "/profile",        label: "Profile",        icon: User },
       ];
     }
     if (role === "vendor") {
       return [
-        { href: "/vendor",               label: "Dashboard",     icon: LayoutDashboard },
-        { href: "/vendor/offers",        label: "My Offers",     icon: Package },
-        { href: "/vendor/orders",        label: "Orders",        icon: ClipboardList },
-        { href: "/vendor/rfqs",          label: "RFQs",          icon: FileText },
-        { href: "/vendor/warehouses",    label: "Warehouses",    icon: Warehouse },
-        { href: "/vendor/shipping-zones", label: "Shipping",     icon: MapPin },
-        { href: "/vendor/wallet",        label: "Wallet",        icon: Wallet },
-        { href: "/vendor/returns",       label: "Returns",       icon: RotateCcw },
-        { href: "/vendor/profile",       label: "Profile",       icon: User },
+        { href: "/vendor",                  label: "Dashboard",       icon: LayoutDashboard },
+        { href: "/vendor/offers",           label: "My Offers",       icon: Package },
+        { href: "/vendor/purchase-orders",  label: "Purchase Orders", icon: FileText },
+        { href: "/vendor/orders",           label: "Order Items",     icon: ClipboardList },
+        { href: "/vendor/rfqs",             label: "RFQs",            icon: FileText },
+        { href: "/vendor/compliance",       label: "Certificates",    icon: ShieldCheck },
+        { href: "/vendor/batches",          label: "Batch Tracker",   icon: FlaskConical },
+        { href: "/vendor/warehouses",       label: "Warehouses",      icon: Warehouse },
+        { href: "/vendor/shipping-zones",   label: "Shipping",        icon: MapPin },
+        { href: "/vendor/wallet",           label: "Wallet",          icon: Wallet },
+        { href: "/vendor/returns",          label: "Returns",         icon: RotateCcw },
+        { href: "/vendor/scorecard",        label: "Scorecard",       icon: Award },
+        { href: "/vendor/profile",          label: "Profile",         icon: User },
       ];
     }
     if (role === "admin") {

@@ -17,6 +17,12 @@ import walletRouter from "./wallet";
 import couponsRouter from "./coupons";
 import integrationsRouter from "./integrations";
 import returnsRouter from "./returns";
+import scorecardRouter from "./scorecard";
+import complianceRouter from "./compliance";
+import batchesRouter from "./batches";
+import substitutesRouter from "./substitutes";
+import subordersRouter from "./suborders";
+import invoicesRouter from "./invoices";
 
 const router: IRouter = Router();
 
@@ -38,5 +44,11 @@ router.use(walletRouter);
 router.use(couponsRouter);
 router.use(integrationsRouter);
 router.use(returnsRouter);
+router.use(scorecardRouter);
+router.use(complianceRouter);
+router.use(batchesRouter);
+router.use(substitutesRouter);
+router.use(subordersRouter);
+router.use(invoicesRouter);
 
 export default router;
