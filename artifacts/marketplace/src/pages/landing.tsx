@@ -74,8 +74,9 @@ const TRUST_ITEMS = [
 ];
 
 export default function Landing() {
-  const { isAuthenticated, isLoading, login } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
+  const login = () => setLocation("/login");
   const { isRtl } = useTranslation();
 
   useEffect(() => {
