@@ -2,7 +2,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { db, companiesTable, userProfilesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { GetMyProfileResponse, OnboardMyProfileBody, OnboardMyProfileResponse } from "@workspace/api-zod";
-import { getOrCreateProfile, getCompanyForProfile } from "../lib/profile";
+import { getOrCreateProfile, getCompanyForProfile, serializeCompany } from "../lib/profile";
 
 const router: IRouter = Router();
 
@@ -66,7 +66,7 @@ router.post("/me/onboard", async (req: Request, res: Response): Promise<void> =>
       userId: profile.userId,
       role: profile.role,
       companyId: profile.companyId,
-      company: createdCompany,
+      company: serializeCompany(createdCompany),
       user: req.user,
     }),
   );

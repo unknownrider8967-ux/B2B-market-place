@@ -15,7 +15,7 @@ import {
   UpdateCompanyStatusResponse,
   GetAdminDashboardResponse,
 } from "@workspace/api-zod";
-import { getOrCreateProfile } from "../lib/profile";
+import { getOrCreateProfile, serializeCompany } from "../lib/profile";
 import { createNotification } from "../lib/notifications";
 import { logAudit } from "../lib/audit";
 
@@ -47,7 +47,7 @@ router.get("/admin/companies", async (req: Request, res: Response): Promise<void
     ? await db.select().from(companiesTable).where(eq(companiesTable.status, query.data.status))
     : await db.select().from(companiesTable);
 
-  res.json(ListAdminCompaniesResponse.parse(rows));
+  res.json(ListAdminCompaniesResponse.parse(rows.map(serializeCompany)));
 });
 
 router.patch("/admin/companies/:id/status", async (req: Request, res: Response): Promise<void> => {
@@ -106,7 +106,7 @@ router.patch("/admin/companies/:id/status", async (req: Request, res: Response):
     metadata: { status: body.data.status },
   });
 
-  res.json(UpdateCompanyStatusResponse.parse(updated));
+  res.json(UpdateCompanyStatusResponse.parse(serializeCompany(updated)));
 });
 
 router.get("/admin/dashboard", async (req: Request, res: Response): Promise<void> => {

@@ -30,5 +30,21 @@ export async function getCompanyForProfile(profile: UserProfile): Promise<Compan
     .select()
     .from(companiesTable)
     .where(eq(companiesTable.id, profile.companyId));
-  return company ?? null;
+  return company ? serializeCompany(company) : null;
+}
+
+// Drizzle returns Postgres `numeric` columns as strings (to avoid float precision loss),
+// but the generated Zod response schemas declare these fields as `number`. Any company row
+// selected straight from the DB must go through this before being validated/serialized by a
+// response schema, or `.parse()` throws on the non-null `outstandingBalance` column.
+export function serializeCompany<T extends Record<string, unknown>>(company: T): T {
+  const numericFields = ["minOrderValue", "freeShippingThreshold", "creditLimit", "outstandingBalance"] as const;
+  const result: Record<string, unknown> = { ...company };
+  for (const field of numericFields) {
+    const value = result[field];
+    if (value !== null && value !== undefined) {
+      result[field] = Number(value);
+    }
+  }
+  return result as T;
 }

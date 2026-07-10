@@ -6,4 +6,5 @@
 - [Admin products query invalidation must use generated keys](react-query-invalidation-keys.md) — always use `getListProductsQueryKey()`, `getListCategoriesQueryKey()` etc from @workspace/api-client-react; string-based invalidation (['products']) does not match the path-based keys orval generates.
 - [Imported pnpm monorepo needs install first](imported-monorepo-node-modules.md) — a GitHub-imported pnpm workspace ships without node_modules; workflows fail with ERR_MODULE_NOT_FOUND / "vite: not found" until `pnpm install` runs at the workspace root.
 - [Wallet/ledger mutations need transactions](wallet-ledger-transactions.md) — money-moving features need SQL-atomic balance increments, DB-guarded status transitions, and one transaction spanning status + ledger writes.
+- [Drizzle numeric columns serialize as strings](drizzle-numeric-serialization.md) — any row with a `numeric`/`decimal` column must be coerced to Number before a Zod response schema `.parse()`s it, or non-null decimal fields throw at runtime.
 </content>

@@ -10,6 +10,7 @@ router.get("/companies/mine", async (req: Request, res: Response): Promise<void>
     return;
   }
   const profile = await getOrCreateProfile(req.user.id);
+  // getCompanyForProfile already serializes numeric fields to numbers before returning.
   const company = await getCompanyForProfile(profile);
   res.json(GetMyCompanyResponse.parse(company));
 });
