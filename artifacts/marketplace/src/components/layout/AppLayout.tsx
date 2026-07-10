@@ -6,7 +6,7 @@ import {
   Loader2, LogOut, Package, ShoppingCart, FileText,
   ClipboardList, LayoutDashboard, Building2, Heart,
   Menu, X, Activity, BarChart3, Receipt, Warehouse,
-  MapPin, Shield, Tag, Wallet,
+  MapPin, Shield, Tag, Wallet, Plug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/ui/notification-bell";
@@ -169,7 +169,7 @@ export function AppLayout({
       ];
     }
     if (role === "admin") {
-      return [
+      const items = [
         { href: "/admin",           label: "Dashboard",  icon: LayoutDashboard },
         { href: "/admin/companies", label: "Companies",  icon: Building2 },
         { href: "/admin/products",  label: "Products",   icon: Package },
@@ -178,6 +178,14 @@ export function AppLayout({
         { href: "/admin/reports",   label: "Reports",    icon: BarChart3 },
         { href: "/admin/audit-logs", label: "Audit Logs", icon: Shield },
       ];
+      // Third-party/payment credentials are the most sensitive admin surface — only show the
+      // Integrations nav item to super_admin (or legacy admins with no adminRole set), matching
+      // the backend's requireSuperAdmin check.
+      const adminRole = profile?.adminRole;
+      if (!adminRole || adminRole === "super_admin") {
+        items.push({ href: "/admin/integrations", label: "Integrations", icon: Plug });
+      }
+      return items;
     }
     return [];
   }, [profile?.role]);

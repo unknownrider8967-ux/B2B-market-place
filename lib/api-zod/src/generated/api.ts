@@ -2605,6 +2605,50 @@ export const DeleteShippingZoneResponse = zod.void()
 
 
 /**
+ * @summary List third-party integration settings (super admin only). Secret values are masked.
+ */
+export const ListIntegrationSettingsResponseItem = zod.object({
+  "provider": zod.enum(['stripe', 'paypal', 'smtp']),
+  "enabled": zod.boolean(),
+  "configured": zod.boolean(),
+  "fields": zod.record(zod.string(), zod.string()),
+  "updatedAt": zod.coerce.date().nullable()
+})
+export const ListIntegrationSettingsResponse = zod.array(ListIntegrationSettingsResponseItem)
+
+
+/**
+ * @summary Create or update a third-party integration's config (super admin only)
+ */
+export const UpdateIntegrationSettingParams = zod.object({
+  "provider": zod.enum(['stripe', 'paypal', 'smtp'])
+})
+
+export const UpdateIntegrationSettingBody = zod.object({
+  "enabled": zod.boolean(),
+  "fields": zod.record(zod.string(), zod.string())
+})
+
+export const UpdateIntegrationSettingResponse = zod.object({
+  "provider": zod.enum(['stripe', 'paypal', 'smtp']),
+  "enabled": zod.boolean(),
+  "configured": zod.boolean(),
+  "fields": zod.record(zod.string(), zod.string()),
+  "updatedAt": zod.coerce.date().nullable()
+})
+
+
+/**
+ * @summary Remove a third-party integration's stored config (super admin only)
+ */
+export const DeleteIntegrationSettingParams = zod.object({
+  "provider": zod.enum(['stripe', 'paypal', 'smtp'])
+})
+
+export const DeleteIntegrationSettingResponse = zod.void()
+
+
+/**
  * @summary List all coupons (admin)
  */
 export const ListCouponsResponseItem = zod.object({

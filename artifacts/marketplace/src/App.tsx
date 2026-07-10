@@ -29,6 +29,7 @@ const AdminCoupons    = lazy(() => import("@/pages/admin/coupons"));
 const AdminReports    = lazy(() => import("@/pages/admin/reports"));
 const AdminAuditLogs  = lazy(() => import("@/pages/admin/audit-logs"));
 const AdminPayouts    = lazy(() => import("@/pages/admin/payouts"));
+const AdminIntegrations = lazy(() => import("@/pages/admin/integrations"));
 
 function PageLoader() {
   return (
@@ -122,6 +123,9 @@ export default function App() {
       </Route>
       <Route path="/admin/payouts">
         <AppLayout allowedRoles={["admin"]}><Wrap><AdminPayouts /></Wrap></AppLayout>
+      </Route>
+      <Route path="/admin/integrations">
+        <AppLayout allowedRoles={["admin"]}><Wrap><AdminIntegrations /></Wrap></AppLayout>
       </Route>
 
       {/* 404 */}

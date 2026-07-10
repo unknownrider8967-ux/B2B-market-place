@@ -2397,6 +2397,59 @@ paths:
         "204":
           description: Deleted
 
+  /admin/integrations:
+    get:
+      operationId: listIntegrationSettings
+      tags: [integrations]
+      summary: List third-party integration settings (super admin only). Secret values are masked.
+      responses:
+        "200":
+          description: Integration settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IntegrationSetting"
+  /admin/integrations/{provider}:
+    put:
+      operationId: updateIntegrationSetting
+      tags: [integrations]
+      summary: Create or update a third-party integration's config (super admin only)
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [stripe, paypal, smtp]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IntegrationSettingInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationSetting"
+    delete:
+      operationId: deleteIntegrationSetting
+      tags: [integrations]
+      summary: Remove a third-party integration's stored config (super admin only)
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [stripe, paypal, smtp]
+      responses:
+        "204":
+          description: Deleted
   /admin/coupons:
     get:
       operationId: listCoupons
@@ -4218,6 +4271,39 @@ components:
           type: [string, "null"]
         discountAmount:
           type: number
+
+    IntegrationSetting:
+      type: object
+      required: [provider, enabled, configured, fields, updatedAt]
+      properties:
+        provider:
+          type: string
+          enum: [stripe, paypal, smtp]
+        enabled:
+          type: boolean
+        configured:
+          type: boolean
+        # Field values are masked (e.g. "••••ab12") for secret fields, plain for non-secret fields.
+        # Unset fields are omitted.
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+        updatedAt:
+          type: [string, "null"]
+          format: date-time
+    IntegrationSettingInput:
+      type: object
+      required: [enabled, fields]
+      properties:
+        enabled:
+          type: boolean
+        # Only include fields you want to change. Sending an empty string for a field leaves the
+        # existing stored value untouched (so the admin never has to re-enter an unrelated secret).
+        fields:
+          type: object
+          additionalProperties:
+            type: string
 
     ReorderResult:
       type: object

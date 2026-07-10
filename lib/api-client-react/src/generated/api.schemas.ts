@@ -1209,6 +1209,33 @@ export interface CouponValidation {
   discountAmount: number;
 }
 
+export type IntegrationSettingProvider = typeof IntegrationSettingProvider[keyof typeof IntegrationSettingProvider];
+
+
+export const IntegrationSettingProvider = {
+  stripe: 'stripe',
+  paypal: 'paypal',
+  smtp: 'smtp',
+} as const;
+
+export type IntegrationSettingFields = {[key: string]: string};
+
+export interface IntegrationSetting {
+  provider: IntegrationSettingProvider;
+  enabled: boolean;
+  configured: boolean;
+  fields: IntegrationSettingFields;
+  /** @nullable */
+  updatedAt: string | null;
+}
+
+export type IntegrationSettingInputFields = {[key: string]: string};
+
+export interface IntegrationSettingInput {
+  enabled: boolean;
+  fields: IntegrationSettingInputFields;
+}
+
 export interface ReorderResult {
   itemsAdded: number;
 }

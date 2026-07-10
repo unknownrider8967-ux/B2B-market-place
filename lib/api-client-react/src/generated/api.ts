@@ -62,6 +62,8 @@ import type {
   GetSalesReportParams,
   HandleBrowserLoginCallbackParams,
   HealthStatus,
+  IntegrationSetting,
+  IntegrationSettingInput,
   InventoryAlert,
   Invoice,
   InvoiceWithBuyer,
@@ -8886,6 +8888,224 @@ export const useDeleteShippingZone = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteShippingZoneMutationOptions(options));
+    }
+
+export const getListIntegrationSettingsUrl = () => {
+
+
+
+
+  return `/api/admin/integrations`
+}
+
+/**
+ * @summary List third-party integration settings (super admin only). Secret values are masked.
+ */
+export const listIntegrationSettings = async ( options?: RequestInit): Promise<IntegrationSetting[]> => {
+
+  return customFetch<IntegrationSetting[]>(getListIntegrationSettingsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListIntegrationSettingsQueryKey = () => {
+    return [
+    `/api/admin/integrations`
+    ] as const;
+    }
+
+
+export const getListIntegrationSettingsQueryOptions = <TData = Awaited<ReturnType<typeof listIntegrationSettings>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listIntegrationSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListIntegrationSettingsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listIntegrationSettings>>> = ({ signal }) => listIntegrationSettings({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listIntegrationSettings>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListIntegrationSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof listIntegrationSettings>>>
+export type ListIntegrationSettingsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List third-party integration settings (super admin only). Secret values are masked.
+ */
+
+export function useListIntegrationSettings<TData = Awaited<ReturnType<typeof listIntegrationSettings>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listIntegrationSettings>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListIntegrationSettingsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateIntegrationSettingUrl = (provider: 'stripe' | 'paypal' | 'smtp',) => {
+
+
+
+
+  return `/api/admin/integrations/${provider}`
+}
+
+/**
+ * @summary Create or update a third-party integration's config (super admin only)
+ */
+export const updateIntegrationSetting = async (provider: 'stripe' | 'paypal' | 'smtp',
+    integrationSettingInput: IntegrationSettingInput, options?: RequestInit): Promise<IntegrationSetting> => {
+
+  return customFetch<IntegrationSetting>(getUpdateIntegrationSettingUrl(provider),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(integrationSettingInput)
+  }
+);}
+
+
+
+
+export const getUpdateIntegrationSettingMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateIntegrationSetting>>, TError,{provider: 'stripe' | 'paypal' | 'smtp';data: BodyType<IntegrationSettingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateIntegrationSetting>>, TError,{provider: 'stripe' | 'paypal' | 'smtp';data: BodyType<IntegrationSettingInput>}, TContext> => {
+
+const mutationKey = ['updateIntegrationSetting'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateIntegrationSetting>>, {provider: 'stripe' | 'paypal' | 'smtp';data: BodyType<IntegrationSettingInput>}> = (props) => {
+          const {provider,data} = props ?? {};
+
+          return  updateIntegrationSetting(provider,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateIntegrationSettingMutationResult = NonNullable<Awaited<ReturnType<typeof updateIntegrationSetting>>>
+    export type UpdateIntegrationSettingMutationBody = BodyType<IntegrationSettingInput>
+    export type UpdateIntegrationSettingMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create or update a third-party integration's config (super admin only)
+ */
+export const useUpdateIntegrationSetting = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateIntegrationSetting>>, TError,{provider: 'stripe' | 'paypal' | 'smtp';data: BodyType<IntegrationSettingInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateIntegrationSetting>>,
+        TError,
+        {provider: 'stripe' | 'paypal' | 'smtp';data: BodyType<IntegrationSettingInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateIntegrationSettingMutationOptions(options));
+    }
+
+export const getDeleteIntegrationSettingUrl = (provider: 'stripe' | 'paypal' | 'smtp',) => {
+
+
+
+
+  return `/api/admin/integrations/${provider}`
+}
+
+/**
+ * @summary Remove a third-party integration's stored config (super admin only)
+ */
+export const deleteIntegrationSetting = async (provider: 'stripe' | 'paypal' | 'smtp', options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteIntegrationSettingUrl(provider),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteIntegrationSettingMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteIntegrationSetting>>, TError,{provider: 'stripe' | 'paypal' | 'smtp'}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteIntegrationSetting>>, TError,{provider: 'stripe' | 'paypal' | 'smtp'}, TContext> => {
+
+const mutationKey = ['deleteIntegrationSetting'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteIntegrationSetting>>, {provider: 'stripe' | 'paypal' | 'smtp'}> = (props) => {
+          const {provider} = props ?? {};
+
+          return  deleteIntegrationSetting(provider,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteIntegrationSettingMutationResult = NonNullable<Awaited<ReturnType<typeof deleteIntegrationSetting>>>
+
+    export type DeleteIntegrationSettingMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Remove a third-party integration's stored config (super admin only)
+ */
+export const useDeleteIntegrationSetting = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteIntegrationSetting>>, TError,{provider: 'stripe' | 'paypal' | 'smtp'}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteIntegrationSetting>>,
+        TError,
+        {provider: 'stripe' | 'paypal' | 'smtp'},
+        TContext
+      > => {
+      return useMutation(getDeleteIntegrationSettingMutationOptions(options));
     }
 
 export const getListCouponsUrl = () => {

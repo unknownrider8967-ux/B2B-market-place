@@ -25,3 +25,4 @@ export * from "./warehouses";
 export * from "./shipping";
 export * from "./coupons";
 export * from "./audit";
+export * from "./integrations";

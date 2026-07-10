@@ -14,6 +14,8 @@ import wishlistRouter from "./wishlist";
 import notificationsRouter from "./notifications";
 import reviewsRouter from "./reviews";
 import walletRouter from "./wallet";
+import couponsRouter from "./coupons";
+import integrationsRouter from "./integrations";
 
 const router: IRouter = Router();
 
@@ -32,5 +34,7 @@ router.use(wishlistRouter);
 router.use(notificationsRouter);
 router.use(reviewsRouter);
 router.use(walletRouter);
+router.use(couponsRouter);
+router.use(integrationsRouter);
 
 export default router;
